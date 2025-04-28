@@ -1,2 +1,86 @@
-saaaaaaaaa
-asdasdas
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #000;
+    font-family: Arial, sans-serif;
+}
+
+#game-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"><rect width="400" height="400" fill="black"/><circle cx="10" cy="10" r="1" fill="white"/><circle cx="25" cy="60" r="1.5" fill="white"/><circle cx="40" cy="30" r="1" fill="white"/><circle cx="60" cy="80" r="2" fill="white"/><circle cx="120" cy="50" r="1" fill="white"/><circle cx="90" cy="120" r="1.5" fill="white"/><circle cx="160" cy="90" r="1" fill="white"/><circle cx="220" cy="180" r="1.5" fill="white"/><circle cx="280" cy="70" r="1" fill="white"/><circle cx="350" cy="120" r="2" fill="white"/><circle cx="330" cy="220" r="1" fill="white"/><circle cx="380" cy="380" r="1.5" fill="white"/><circle cx="200" cy="250" r="1" fill="white"/><circle cx="150" cy="350" r="1.5" fill="white"/><circle cx="250" cy="300" r="1" fill="white"/><circle cx="300" cy="350" r="2" fill="white"/></svg>');
+    background-repeat: repeat;
+}
+
+#spaceship {
+    position: absolute;
+    width: 80px;
+    height: 30px;
+    background-color: silver;
+    top: 50px;
+    left: calc(50% - 40px);
+    border-radius: 40px 40px 5px 5px;
+}
+
+#spaceship:before {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 30px;
+    width: 20px;
+    height: 5px;
+    background-color: orangered;
+    border-radius: 0 0 10px 10px;
+}
+
+#platform {
+    position: absolute;
+    width: 120px;
+    height: 10px;
+    background-color: #4CAF50;
+    bottom: 30px;
+    left: calc(50% - 60px);
+    border-radius: 3px;
+}
+
+#message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    display: none;
+    z-index: 100;
+}
+
+#instructions {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+#restart-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+    font-size: 16px;
+}
+
+#restart-btn:hover {
+    background-color: #388E3C;
+}
