@@ -564,18 +564,19 @@
         });
     }
 
-    function spawnAsteroid() {
-        const asteroid = document.createElement('div');
-        asteroid.classList.add('asteroid');
-        const size = Math.random() * 30 + 20;
-        asteroid.style.width = `${size}px`;
-        asteroid.style.height = `${size}px`;
-        asteroid.style.left = `${Math.random() * (window.innerWidth - size)}px`;
-        asteroid.style.top = `-50px`;
-        asteroid.speed = Math.random() * 1 + 0.5;
-        gameContainer.appendChild(asteroid);
-        asteroids.push(asteroid);
-    }
+   function spawnAsteroid() {
+    const asteroid = document.createElement('div');
+    asteroid.classList.add('asteroid');
+    const size = Math.random() * 30 + 20;
+    asteroid.style.width = `${size}px`;
+    asteroid.style.height = `${size}px`;
+    asteroid.style.left = `${Math.random() * (window.innerWidth - size)}px`;
+    asteroid.style.top = `${window.innerHeight + size}px`; // ➤ Parte da sotto lo schermo
+    asteroid.speed = Math.random() * 1 + 0.5;
+    gameContainer.appendChild(asteroid);
+    asteroids.push(asteroid);
+}
+
 
     window.addEventListener('keydown', function(e) {
         keys[e.key.toLowerCase()] = true;
@@ -728,14 +729,14 @@
         // Asteroidi: movimento e collisione
         asteroids.forEach((asteroid, index) => {
             const currentTop = parseFloat(asteroid.style.top);
-            asteroid.style.top = `${currentTop + asteroid.speed * deltaTime}px`;
+            asteroid.style.top = `${currentTop - asteroid.speed * deltaTime}px`;
             const currentLeft = parseFloat(asteroid.style.left);
             asteroid.style.left = `${currentLeft + Math.sin(currentTop / 50) * 0.5}px`;
+if (currentTop + asteroid.offsetHeight < 0) {
+    asteroid.remove();
+    asteroids.splice(index, 1);
+}
 
-            if (currentTop > window.innerHeight) {
-                asteroid.remove();
-                asteroids.splice(index, 1);
-            }
 
             const asteroidRect = asteroid.getBoundingClientRect();
             if (!(
