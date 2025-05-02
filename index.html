@@ -486,383 +486,379 @@
         <button id="close-shop-btn" class="button">Chiudi</button>
     </div>
 
-    <script>
-        // Elementi del DOM
-        const spaceship = document.getElementById('spaceship');
-        const platform = document.getElementById('platform');
-        const gameMessage = document.getElementById('game-message');
-        const velocityIndicator = document.getElementById('velocity-indicator');
-        const fuelIndicator = document.getElementById('fuel-indicator');
-        const coinsIndicator = document.getElementById('coins-indicator');
-        const levelIndicator = document.getElementById('level-indicator');
-        const gameContainer = document.getElementById('game-container');
-        const mainMenu = document.getElementById('main-menu');
-        const instructionsScreen = document.getElementById('instructions-screen');
-        const pauseScreen = document.getElementById('pause-screen');
-        const shopContainer = document.getElementById('shop-container');
-        const messageTitle = document.getElementById('message-title');
-        const messageText = document.getElementById('message-text');
-        const starsCanvas = document.getElementById('stars');
-        const starsCtx = starsCanvas.getContext('2d');
+ 
+        <script>
+    // Elementi del DOM
+    const spaceship = document.getElementById('spaceship');
+    const platform = document.getElementById('platform');
+    const gameMessage = document.getElementById('game-message');
+    const velocityIndicator = document.getElementById('velocity-indicator');
+    const fuelIndicator = document.getElementById('fuel-indicator');
+    const coinsIndicator = document.getElementById('coins-indicator');
+    const levelIndicator = document.getElementById('level-indicator');
+    const gameContainer = document.getElementById('game-container');
+    const mainMenu = document.getElementById('main-menu');
+    const instructionsScreen = document.getElementById('instructions-screen');
+    const pauseScreen = document.getElementById('pause-screen');
+    const shopContainer = document.getElementById('shop-container');
+    const messageTitle = document.getElementById('message-title');
+    const messageText = document.getElementById('message-text');
+    const starsCanvas = document.getElementById('stars');
+    const starsCtx = starsCanvas.getContext('2d');
 
-        // Bottoni
-        const playBtn = document.getElementById('play-btn');
-        const instructionsBtn = document.getElementById('instructions-btn');
-        const backToMenuBtn = document.getElementById('back-to-menu-btn');
-        const continueBtn = document.getElementById('continue-btn');
-        const backToMenuFromMessageBtn = document.getElementById('back-to-menu-from-message-btn');
-        const pauseBtn = document.getElementById('pause-btn');
-        const resumeBtn = document.getElementById('resume-btn');
-        const backToMenuFromPauseBtn = document.getElementById('back-to-menu-from-pause-btn');
-        const shopBtn = document.getElementById('shop-btn');
-        const closeShopBtn = document.getElementById('close-shop-btn');
-        const buyFuelBtn = document.getElementById('buy-fuel-btn');
-        const buyFuelLargeBtn = document.getElementById('buy-fuel-large-btn');
-        const buyEngineBtn = document.getElementById('buy-engine-btn');
-        const buyTankBtn = document.getElementById('buy-tank-btn');
+    // Bottoni
+    const playBtn = document.getElementById('play-btn');
+    const instructionsBtn = document.getElementById('instructions-btn');
+    const backToMenuBtn = document.getElementById('back-to-menu-btn');
+    const continueBtn = document.getElementById('continue-btn');
+    const backToMenuFromMessageBtn = document.getElementById('back-to-menu-from-message-btn');
+    const pauseBtn = document.getElementById('pause-btn');
+    const resumeBtn = document.getElementById('resume-btn');
+    const backToMenuFromPauseBtn = document.getElementById('back-to-menu-from-pause-btn');
+    const shopBtn = document.getElementById('shop-btn');
+    const closeShopBtn = document.getElementById('close-shop-btn');
+    const buyFuelBtn = document.getElementById('buy-fuel-btn');
+    const buyFuelLargeBtn = document.getElementById('buy-fuel-large-btn');
+    const buyEngineBtn = document.getElementById('buy-engine-btn');
+    const buyTankBtn = document.getElementById('buy-tank-btn');
 
-        // Variabili di gioco
-        let spaceshipX, spaceshipY, velocity, acceleration;
-        let fuel = 100;
-        let maxFuel = 100;
-        let horizontalSpeed = 8;
-        let isGameOver = false;
-        let isPaused = false;
-        let isShopOpen = false;
-        let enginePower = 1;
-        let coins = 0;
-        let level = 1;
-        let keys = {};
-        let stars = [];
-        let animationFrameId;
-        let lastTime = 0;
+    // Variabili di gioco
+    let spaceshipX, spaceshipY, velocity, acceleration;
+    let fuel = 100;
+    let maxFuel = 100;
+    let horizontalSpeed = 8;
+    let isGameOver = false;
+    let isPaused = false;
+    let isShopOpen = false;
+    let enginePower = 1;
+    let coins = 0;
+    let level = 1;
+    let keys = {};
+    let stars = [];
+    let asteroids = [];
+    let animationFrameId;
+    let lastTime = 0;
 
-        // Inizializzazione delle stelle per lo sfondo
-        function initStars() {
-            starsCanvas.width = window.innerWidth;
-            starsCanvas.height = window.innerHeight;
-            stars = [];
-            
-            for (let i = 0; i < 200; i++) {
-                stars.push({
-                    x: Math.random() * starsCanvas.width,
-                    y: Math.random() * starsCanvas.height,
-                    radius: Math.random() * 1.5 + 0.5,
-                    opacity: Math.random() * 0.8 + 0.2
-                });
-            }
-            
-            drawStars();
-        }
-
-        function drawStars() {
-            starsCtx.clearRect(0, 0, starsCanvas.width, starsCanvas.height);
-            
-            stars.forEach(star => {
-                starsCtx.beginPath();
-                starsCtx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-                starsCtx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
-                starsCtx.fill();
+    function initStars() {
+        starsCanvas.width = window.innerWidth;
+        starsCanvas.height = window.innerHeight;
+        stars = [];
+        for (let i = 0; i < 200; i++) {
+            stars.push({
+                x: Math.random() * starsCanvas.width,
+                y: Math.random() * starsCanvas.height,
+                radius: Math.random() * 1.5 + 0.5,
+                opacity: Math.random() * 0.8 + 0.2
             });
         }
+        drawStars();
+    }
 
-        // Controllo input da tastiera
-        window.addEventListener('keydown', function(e) {
-            keys[e.key.toLowerCase()] = true;
-            
-            // Scorciatoie da tastiera
-            if (e.key.toLowerCase() === 'p' && !isGameOver && !isShopOpen) {
-                togglePause();
-            }
-            
-            if (e.key.toLowerCase() === 's' && !isGameOver && !isPaused) {
-                toggleShop();
-            }
+    function drawStars() {
+        starsCtx.clearRect(0, 0, starsCanvas.width, starsCanvas.height);
+        stars.forEach(star => {
+            starsCtx.beginPath();
+            starsCtx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+            starsCtx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
+            starsCtx.fill();
         });
+    }
 
-        window.addEventListener('keyup', function(e) {
-            keys[e.key.toLowerCase()] = false;
-        });
+    function spawnAsteroid() {
+        const asteroid = document.createElement('div');
+        asteroid.classList.add('asteroid');
+        const size = Math.random() * 30 + 20;
+        asteroid.style.width = `${size}px`;
+        asteroid.style.height = `${size}px`;
+        asteroid.style.left = `${Math.random() * (window.innerWidth - size)}px`;
+        asteroid.style.top = `-50px`;
+        asteroid.speed = Math.random() * 1 + 0.5;
+        gameContainer.appendChild(asteroid);
+        asteroids.push(asteroid);
+    }
 
-        // Ridimensionamento della finestra
-        window.addEventListener('resize', function() {
-            initStars();
-            
-            // Aggiusta la posizione della piattaforma
-            platform.style.left = (window.innerWidth / 2 - platform.offsetWidth / 2) + 'px';
-            
-            // Assicura che l'astronave rimanga nei limiti
-            if (spaceshipX > window.innerWidth - spaceship.offsetWidth) {
-                spaceshipX = window.innerWidth - spaceship.offsetWidth;
-            }
-        });
+    window.addEventListener('keydown', function(e) {
+        keys[e.key.toLowerCase()] = true;
+        if (e.key.toLowerCase() === 'p' && !isGameOver && !isShopOpen) togglePause();
+        if (e.key.toLowerCase() === 's' && !isGameOver && !isPaused) toggleShop();
+    });
 
-        // Funzioni di navigazione UI
-        function showMainMenu() {
+    window.addEventListener('keyup', function(e) {
+        keys[e.key.toLowerCase()] = false;
+    });
+
+    window.addEventListener('resize', function() {
+        initStars();
+        platform.style.left = (window.innerWidth / 2 - platform.offsetWidth / 2) + 'px';
+        if (spaceshipX > window.innerWidth - spaceship.offsetWidth) {
+            spaceshipX = window.innerWidth - spaceship.offsetWidth;
+        }
+    });
+
+    function showMainMenu() {
+        cancelAnimationFrame(animationFrameId);
+        mainMenu.style.display = 'flex';
+        instructionsScreen.style.display = 'none';
+        pauseScreen.style.display = 'none';
+        gameContainer.style.display = 'none';
+        gameMessage.style.display = 'none';
+        shopContainer.style.display = 'none';
+        isPaused = false;
+        isShopOpen = false;
+    }
+
+    function showInstructions() {
+        mainMenu.style.display = 'none';
+        instructionsScreen.style.display = 'flex';
+    }
+
+    function startGame() {
+        mainMenu.style.display = 'none';
+        gameContainer.style.display = 'block';
+        resetGame();
+        gameLoop(0);
+    }
+
+    function togglePause() {
+        isPaused = !isPaused;
+        if (isPaused) {
+            pauseScreen.style.display = 'flex';
             cancelAnimationFrame(animationFrameId);
-            mainMenu.style.display = 'flex';
-            instructionsScreen.style.display = 'none';
+        } else {
             pauseScreen.style.display = 'none';
-            gameContainer.style.display = 'none';
-            gameMessage.style.display = 'none';
-            shopContainer.style.display = 'none';
-            isPaused = false;
-            isShopOpen = false;
+            lastTime = performance.now();
+            gameLoop(lastTime);
+        }
+    }
+
+    function toggleShop() {
+        isShopOpen = !isShopOpen;
+        shopContainer.style.display = isShopOpen ? 'block' : 'none';
+        updateShopButtons();
+        if (isShopOpen) {
+            isPaused = true;
+            cancelAnimationFrame(animationFrameId);
+        } else if (!isPaused) {
+            lastTime = performance.now();
+            gameLoop(lastTime);
+        }
+    }
+
+    function updateShopButtons() {
+        buyFuelBtn.disabled = coins < parseInt(buyFuelBtn.dataset.price);
+        buyFuelLargeBtn.disabled = coins < parseInt(buyFuelLargeBtn.dataset.price);
+        buyEngineBtn.disabled = coins < parseInt(buyEngineBtn.dataset.price);
+        buyTankBtn.disabled = coins < parseInt(buyTankBtn.dataset.price);
+    }
+
+    function gameLoop(timestamp) {
+        if (isGameOver || isPaused) return;
+
+        const deltaTime = (timestamp - lastTime) / 16.67;
+        lastTime = timestamp;
+        const gravityMultiplier = 1 + (level - 1) * 0.1;
+
+        if ((keys['arrowup'] || keys['w']) && fuel > 0) {
+            velocity -= acceleration * 2 * enginePower * deltaTime;
+            if (velocity < -2 * enginePower) velocity = -2 * enginePower;
+            fuel = Math.max(0, fuel - 0.5 * deltaTime);
+            spaceship.classList.add('thrusting');
+        } else {
+            velocity += acceleration * gravityMultiplier * deltaTime;
+            spaceship.classList.remove('thrusting');
         }
 
-        function showInstructions() {
-            mainMenu.style.display = 'none';
-            instructionsScreen.style.display = 'flex';
+        spaceshipY += velocity * deltaTime;
+        if (spaceshipY < 0) {
+            spaceshipY = 0;
+            velocity = 0;
         }
 
-        function startGame() {
-            mainMenu.style.display = 'none';
-            gameContainer.style.display = 'block';
-            resetGame();
-            gameLoop(0);
-        }
-
-        function togglePause() {
-            isPaused = !isPaused;
-            if (isPaused) {
-                pauseScreen.style.display = 'flex';
-                cancelAnimationFrame(animationFrameId);
-            } else {
-                pauseScreen.style.display = 'none';
-                lastTime = performance.now();
-                gameLoop(lastTime);
-            }
-        }
-
-        function toggleShop() {
-            isShopOpen = !isShopOpen;
-            shopContainer.style.display = isShopOpen ? 'block' : 'none';
-            
-            // Aggiorna lo stato dei pulsanti del negozio
-            updateShopButtons();
-            
-            if (isShopOpen) {
-                isPaused = true;
-                cancelAnimationFrame(animationFrameId);
-            } else if (!isPaused) {
-                lastTime = performance.now();
-                gameLoop(lastTime);
-            }
-        }
-
-        function updateShopButtons() {
-            // Disabilita i pulsanti se non ci sono abbastanza monete
-            buyFuelBtn.disabled = coins < parseInt(buyFuelBtn.dataset.price);
-            buyFuelLargeBtn.disabled = coins < parseInt(buyFuelLargeBtn.dataset.price);
-            buyEngineBtn.disabled = coins < parseInt(buyEngineBtn.dataset.price);
-            buyTankBtn.disabled = coins < parseInt(buyTankBtn.dataset.price);
-        }
-
-        // Funzione principale del ciclo di gioco
-        function gameLoop(timestamp) {
-            if (isGameOver || isPaused) return;
-            
-            const deltaTime = (timestamp - lastTime) / 16.67; // Normalizza a circa 60fps
-            lastTime = timestamp;
-            
-            // Calcola l'accelerazione in base al livello
-            const gravityMultiplier = 1 + (level - 1) * 0.1;
-            
-            // Applica gravità o propulsione
-            if ((keys['arrowup'] || keys['w']) && fuel > 0) {
-                velocity -= acceleration * 2 * enginePower * deltaTime;
-                if (velocity < -2 * enginePower) velocity = -2 * enginePower;
-                fuel = Math.max(0, fuel - 0.5 * deltaTime);
-                spaceship.classList.add('thrusting');
-            } else {
-                velocity += acceleration * gravityMultiplier * deltaTime;
-                spaceship.classList.remove('thrusting');
-            }
-            
-            // Aggiorna posizione verticale
-            spaceshipY += velocity * deltaTime;
-            
-            // Limita la posizione superiore
-            if (spaceshipY < 0) {
-                spaceshipY = 0;
-                velocity = 0;
-            }
-            
-            // Movimento orizzontale
-            if ((keys['arrowleft'] || keys['a']) && spaceshipX > 0) {
-                spaceshipX -= horizontalSpeed * deltaTime;
-                spaceship.style.transform = 'rotate(-15deg)';
-            } else if ((keys['arrowright'] || keys['d']) && spaceshipX < window.innerWidth - spaceship.offsetWidth) {
-                spaceshipX += horizontalSpeed * deltaTime;
-                spaceship.style.transform = 'rotate(15deg)';
-            } else {
-                spaceship.style.transform = 'rotate(0deg)';
-            }
-            
-            // Applica la posizione all'astronave
-            spaceship.style.left = spaceshipX + 'px';
-            spaceship.style.top = spaceshipY + 'px';
-            
-            // Controlla collisione con la piattaforma
-            const platformRect = platform.getBoundingClientRect();
-            const spaceshipRect = spaceship.getBoundingClientRect();
-            
-            const isCollision = !(
-                spaceshipRect.bottom < platformRect.top ||
-                spaceshipRect.top > platformRect.bottom ||
-                spaceshipRect.right < platformRect.left ||
-                spaceshipRect.left > platformRect.right
-            );
-            
-            // Atterraggio riuscito
-            if (isCollision && velocity >= 0 && velocity < 1) {
-                isGameOver = true;
-                const reward = Math.floor(10 + level * 5 + fuel * 0.2);
-                coins += reward;
-                messageTitle.textContent = 'Livello completato!';
-                messageText.textContent = `Hai atterrato con successo! Velocità: ${velocity.toFixed(2)}\nHai guadagnato ${reward} monete.`;
-                gameMessage.style.display = 'block';
-                level++;
-                
-                // Aggiorna gli indicatori
-                coinsIndicator.textContent = `Monete: ${coins}`;
-                levelIndicator.textContent = `Livello: ${level}`;
-                
-                return;
-            }
-            
-            // Schianto sulla piattaforma
-            if (isCollision && velocity >= 1) {
-                isGameOver = true;
-                messageTitle.textContent = 'Schianto!';
-                messageText.textContent = `Velocità troppo alta: ${velocity.toFixed(2)}. L'astronave è danneggiata.`;
-                gameMessage.style.display = 'block';
-                return;
-            }
-            
-            // Schianto sul terreno
-            if (spaceshipY + spaceship.offsetHeight >= window.innerHeight) {
-                isGameOver = true;
-                messageTitle.textContent = 'Fallimento!';
-                messageText.textContent = 'L\'astronave si è schiantata sul terreno.';
-                gameMessage.style.display = 'block';
-                return;
-            }
-            
-            // Aggiorna gli indicatori
-            velocityIndicator.textContent = `Velocità: ${velocity.toFixed(2)}`;
-            fuelIndicator.textContent = `Carburante: ${Math.floor(fuel)}%`;
-            
-            // Continua il ciclo di gioco
-            animationFrameId = requestAnimationFrame(gameLoop);
-        }
-
-        // Resetta il gioco per un nuovo livello
-        function resetGame() {
-            // Calcola la larghezza della piattaforma in base al livello
-            const platformWidth = Math.max(60, 120 - (level - 1) * 5);
-            platform.style.width = platformWidth + 'px';
-            platform.style.left = (window.innerWidth / 2 - platformWidth / 2) + 'px';
-            
-            // Resetta variabili di gioco
-            velocity = 0.1;
-            acceleration = 0.06;
-            fuel = Math.min(maxFuel, fuel + 20); // Ricarica parziale del carburante tra i livelli
-            isGameOver = false;
-            isPaused = false;
-            gameMessage.style.display = 'none';
-            keys = {};
-            
-            // Posiziona l'astronave
-            spaceshipX = Math.random() * (window.innerWidth - spaceship.offsetWidth);
-            spaceshipY = 50;
-            spaceship.style.left = spaceshipX + 'px';
-            spaceship.style.top = spaceshipY + 'px';
+        if ((keys['arrowleft'] || keys['a']) && spaceshipX > 0) {
+            spaceshipX -= horizontalSpeed * deltaTime;
+            spaceship.style.transform = 'rotate(-15deg)';
+        } else if ((keys['arrowright'] || keys['d']) && spaceshipX < window.innerWidth - spaceship.offsetWidth) {
+            spaceshipX += horizontalSpeed * deltaTime;
+            spaceship.style.transform = 'rotate(15deg)';
+        } else {
             spaceship.style.transform = 'rotate(0deg)';
-            
-            // Aggiorna gli indicatori
-            velocityIndicator.textContent = `Velocità: ${velocity.toFixed(2)}`;
-            fuelIndicator.textContent = `Carburante: ${Math.floor(fuel)}%`;
+        }
+
+        spaceship.style.left = spaceshipX + 'px';
+        spaceship.style.top = spaceshipY + 'px';
+
+        const platformRect = platform.getBoundingClientRect();
+        const spaceshipRect = spaceship.getBoundingClientRect();
+        const isCollision = !(
+            spaceshipRect.bottom < platformRect.top ||
+            spaceshipRect.top > platformRect.bottom ||
+            spaceshipRect.right < platformRect.left ||
+            spaceshipRect.left > platformRect.right
+        );
+
+        if (isCollision && velocity >= 0 && velocity < 1) {
+            isGameOver = true;
+            const reward = Math.floor(10 + level * 5 + fuel * 0.2);
+            coins += reward;
+            messageTitle.textContent = 'Livello completato!';
+            messageText.textContent = `Hai atterrato con successo! Velocità: ${velocity.toFixed(2)}\nHai guadagnato ${reward} monete.`;
+            gameMessage.style.display = 'block';
+            level++;
             coinsIndicator.textContent = `Monete: ${coins}`;
             levelIndicator.textContent = `Livello: ${level}`;
-            
-            // Imposta l'ultimo timestamp
-            lastTime = performance.now();
+            return;
         }
 
-        // Funzioni del negozio
-        function buyFuel(amount, price) {
-            if (coins >= price && fuel < maxFuel) {
-                coins -= price;
-                fuel = Math.min(maxFuel, fuel + amount);
-                coinsIndicator.textContent = `Monete: ${coins}`;
-                fuelIndicator.textContent = `Carburante: ${Math.floor(fuel)}%`;
-                updateShopButtons();
+        if (isCollision && velocity >= 1) {
+            isGameOver = true;
+            messageTitle.textContent = 'Schianto!';
+            messageText.textContent = `Velocità troppo alta: ${velocity.toFixed(2)}. L'astronave è danneggiata.`;
+            gameMessage.style.display = 'block';
+            return;
+        }
+
+        if (spaceshipY + spaceship.offsetHeight >= window.innerHeight) {
+            isGameOver = true;
+            messageTitle.textContent = 'Fallimento!';
+            messageText.textContent = 'L\'astronave si è schiantata sul terreno.';
+            gameMessage.style.display = 'block';
+            return;
+        }
+
+        // Asteroidi: movimento e collisione
+        asteroids.forEach((asteroid, index) => {
+            const currentTop = parseFloat(asteroid.style.top);
+            asteroid.style.top = `${currentTop + asteroid.speed * deltaTime}px`;
+            const currentLeft = parseFloat(asteroid.style.left);
+            asteroid.style.left = `${currentLeft + Math.sin(currentTop / 50) * 0.5}px`;
+
+            if (currentTop > window.innerHeight) {
+                asteroid.remove();
+                asteroids.splice(index, 1);
             }
-        }
 
-        function upgradeFuelTank(price) {
-            if (coins >= price) {
-                coins -= price;
-                maxFuel += 25;
-                coinsIndicator.textContent = `Monete: ${coins}`;
-                fuelIndicator.textContent = `Carburante: ${Math.floor(fuel)}%`;
-                updateShopButtons();
+            const asteroidRect = asteroid.getBoundingClientRect();
+            if (!(
+                asteroidRect.bottom < spaceshipRect.top ||
+                asteroidRect.top > spaceshipRect.bottom ||
+                asteroidRect.right < spaceshipRect.left ||
+                asteroidRect.left > spaceshipRect.right
+            )) {
+                isGameOver = true;
+                messageTitle.textContent = 'Colpito!';
+                messageText.textContent = 'Un asteroide ha colpito l\'astronave!';
+                gameMessage.style.display = 'block';
+                return;
             }
+        });
+
+        velocityIndicator.textContent = `Velocità: ${velocity.toFixed(2)}`;
+        fuelIndicator.textContent = `Carburante: ${Math.floor(fuel)}%`;
+        animationFrameId = requestAnimationFrame(gameLoop);
+    }
+
+    function resetGame() {
+        const platformWidth = Math.max(60, 120 - (level - 1) * 5);
+        platform.style.width = platformWidth + 'px';
+        platform.style.left = (window.innerWidth / 2 - platformWidth / 2) + 'px';
+
+        velocity = 0.1;
+        acceleration = 0.06;
+        fuel = Math.min(maxFuel, fuel + 20);
+        isGameOver = false;
+        isPaused = false;
+        gameMessage.style.display = 'none';
+        keys = {};
+
+        spaceshipX = Math.random() * (window.innerWidth - spaceship.offsetWidth);
+        spaceshipY = 50;
+        spaceship.style.left = spaceshipX + 'px';
+        spaceship.style.top = spaceshipY + 'px';
+        spaceship.style.transform = 'rotate(0deg)';
+
+        velocityIndicator.textContent = `Velocità: ${velocity.toFixed(2)}`;
+        fuelIndicator.textContent = `Carburante: ${Math.floor(fuel)}%`;
+        coinsIndicator.textContent = `Monete: ${coins}`;
+        levelIndicator.textContent = `Livello: ${level}`;
+
+        asteroids.forEach(a => a.remove());
+        asteroids = [];
+        for (let i = 0; i < level + 2; i++) spawnAsteroid();
+
+        lastTime = performance.now();
+    }
+
+    function buyFuel(amount, price) {
+        if (coins >= price && fuel < maxFuel) {
+            coins -= price;
+            fuel = Math.min(maxFuel, fuel + amount);
+            coinsIndicator.textContent = `Monete: ${coins}`;
+            fuelIndicator.textContent = `Carburante: ${Math.floor(fuel)}%`;
+            updateShopButtons();
         }
+    }
 
-        function upgradeEngine(price) {
-            if (coins >= price) {
-                coins -= price;
-                enginePower += 0.2;
-                coinsIndicator.textContent = `Monete: ${coins}`;
-                updateShopButtons();
-            }
+    function upgradeFuelTank(price) {
+        if (coins >= price) {
+            coins -= price;
+            maxFuel += 25;
+            coinsIndicator.textContent = `Monete: ${coins}`;
+            fuelIndicator.textContent = `Carburante: ${Math.floor(fuel)}%`;
+            updateShopButtons();
         }
+    }
 
-        // Event Listeners per i bottoni
-        playBtn.addEventListener('click', startGame);
-        instructionsBtn.addEventListener('click', showInstructions);
-        backToMenuBtn.addEventListener('click', showMainMenu);
-        continueBtn.addEventListener('click', function() {
-            gameMessage.style.display = 'none';
-            isGameOver = false;
-            resetGame();
-            gameLoop(performance.now());
-        });
-        backToMenuFromMessageBtn.addEventListener('click', showMainMenu);
-        pauseBtn.addEventListener('click', togglePause);
-        resumeBtn.addEventListener('click', togglePause);
-        backToMenuFromPauseBtn.addEventListener('click', showMainMenu);
-        shopBtn.addEventListener('click', toggleShop);
-        closeShopBtn.addEventListener('click', toggleShop);
-        
-        // Event Listeners per gli acquisti nel negozio
-        buyFuelBtn.addEventListener('click', function() {
-            const amount = parseInt(this.dataset.amount);
-            const price = parseInt(this.dataset.price);
-            buyFuel(amount, price);
-        });
-        
-        buyFuelLargeBtn.addEventListener('click', function() {
-            const amount = parseInt(this.dataset.amount);
-            const price = parseInt(this.dataset.price);
-            buyFuel(amount, price);
-        });
-        
-        buyEngineBtn.addEventListener('click', function() {
-            const price = parseInt(this.dataset.price);
-            upgradeEngine(price);
-        });
-        
-        buyTankBtn.addEventListener('click', function() {
-            const price = parseInt(this.dataset.price);
-            upgradeFuelTank(price);
-        });
+    function upgradeEngine(price) {
+        if (coins >= price) {
+            coins -= price;
+            enginePower += 0.2;
+            coinsIndicator.textContent = `Monete: ${coins}`;
+            updateShopButtons();
+        }
+    }
 
-        // Avvia il gioco
-        initStars();
-        showMainMenu();
-    </script>
+    playBtn.addEventListener('click', startGame);
+    instructionsBtn.addEventListener('click', showInstructions);
+    backToMenuBtn.addEventListener('click', showMainMenu);
+    continueBtn.addEventListener('click', function () {
+        gameMessage.style.display = 'none';
+        isGameOver = false;
+        resetGame();
+        gameLoop(performance.now());
+    });
+    backToMenuFromMessageBtn.addEventListener('click', showMainMenu);
+    pauseBtn.addEventListener('click', togglePause);
+    resumeBtn.addEventListener('click', togglePause);
+    backToMenuFromPauseBtn.addEventListener('click', showMainMenu);
+    shopBtn.addEventListener('click', toggleShop);
+    closeShopBtn.addEventListener('click', toggleShop);
+
+    buyFuelBtn.addEventListener('click', function () {
+        const amount = parseInt(this.dataset.amount);
+        const price = parseInt(this.dataset.price);
+        buyFuel(amount, price);
+    });
+
+    buyFuelLargeBtn.addEventListener('click', function () {
+        const amount = parseInt(this.dataset.amount);
+        const price = parseInt(this.dataset.price);
+        buyFuel(amount, price);
+    });
+
+    buyEngineBtn.addEventListener('click', function () {
+        const price = parseInt(this.dataset.price);
+        upgradeEngine(price);
+    });
+
+    buyTankBtn.addEventListener('click', function () {
+        const price = parseInt(this.dataset.price);
+        upgradeFuelTank(price);
+    });
+
+    initStars();
+    showMainMenu();
+</script>
+
+    
 </body>
 </html>
