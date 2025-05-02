@@ -6,25 +6,25 @@
     <style>
         body {
             margin: 0;
-            font-family: Arial, sans-serif;
             background: black;
             color: white;
+            font-family: Arial, sans-serif;
             overflow: hidden;
         }
-        #game {
+        #gioco {
             width: 100vw;
             height: 100vh;
             position: relative;
             display: none;
         }
-        #spaceship {
-            width: 50px;
-            height: 20px;
+        #navicella {
+            width: 60px;
+            height: 25px;
             background: gray;
             position: absolute;
             border-radius: 10px;
         }
-        #platform {
+        #piattaforma {
             width: 100px;
             height: 10px;
             background: green;
@@ -33,145 +33,207 @@
             left: 50%;
             transform: translateX(-50%);
         }
-        #menu {
+        #menu, #messaggio, #negozio, #pausa {
             position: absolute;
             width: 100%;
             height: 100%;
-            background: black;
             display: flex;
             flex-direction: column;
-            align-items: center;
             justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 10;
         }
         button {
-            padding: 10px 20px;
+            padding: 10px;
             margin: 10px;
+            cursor: pointer;
         }
-        #message {
+        .statistiche {
             position: absolute;
-            top: 40%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.8);
-            padding: 20px;
-            border: 1px solid white;
-            display: none;
+            top: 10px;
+            left: 10px;
         }
     </style>
 </head>
 <body>
-
 <div id="menu">
     <h1>Atterra Navicella</h1>
-    <button onclick="startGame()">Inizia</button>
+    <button onclick="iniziaGioco()">Gioca</button>
 </div>
 
-<div id="game">
-    <div id="spaceship"></div>
-    <div id="platform"></div>
+<div id="gioco">
+    <div id="navicella"></div>
+    <div id="piattaforma"></div>
+    <div class="statistiche">
+        <div id="velocita">Velocità: 0</div>
+        <div id="carburante">Carburante: 100%</div>
+        <div id="monete">Monete: 0</div>
+        <div id="livello">Livello: 1</div>
+    </div>
 </div>
 
-<div id="message">
-    <h2 id="message-text"></h2>
-    <button onclick="resetGame()">Gioca di nuovo</button>
+<div id="messaggio" style="display:none">
+    <h2 id="testoMessaggio"></h2>
+    <button onclick="continuaGioco()">Continua</button>
+    <button onclick="tornaMenu()">Menu</button>
+</div>
+
+<div id="pausa" style="display:none">
+    <h2>Gioco in pausa</h2>
+    <button onclick="riprendiGioco()">Riprendi</button>
+    <button onclick="tornaMenu()">Menu</button>
+</div>
+
+<div id="negozio" style="display:none">
+    <h2>Negozio</h2>
+    <button onclick="compraCarburante(10, 20)">+20% Carburante (10 monete)</button>
+    <button onclick="compraMotore(30)">Motore migliorato (30 monete)</button>
+    <button onclick="chiudiNegozio()">Chiudi</button>
 </div>
 
 <script>
-    const game = document.getElementById("game");
-    const menu = document.getElementById("menu");
-    const spaceship = document.getElementById("spaceship");
-    const platform = document.getElementById("platform");
-    const messageBox = document.getElementById("message");
-    const messageText = document.getElementById("message-text");
+// Variabili globali semplici
+let x = 100, y = 50, vy = 0;
+let gravita = 0.05;
+let carburante = 100;
+let monete = 0;
+let livello = 1;
+let motore = 1;
+let inPausa = false;
+let fineGioco = false;
 
-    let x = 100;
-    let y = 50;
-    let vy = 0;
-    let ax = 0;
-    let ay = 0.05;
-    let thrust = -0.2;
-    let left = false, right = false, up = false;
-    let isRunning = false;
+let sinistra = false;
+let destra = false;
+let su = false;
 
-    function startGame() {
-        menu.style.display = "none";
-        game.style.display = "block";
-        spaceship.style.left = x + "px";
-        spaceship.style.top = y + "px";
-        isRunning = true;
-        requestAnimationFrame(update);
+const navicella = document.getElementById("navicella");
+const piattaforma = document.getElementById("piattaforma");
+const gioco = document.getElementById("gioco");
+const menu = document.getElementById("menu");
+const messaggio = document.getElementById("messaggio");
+const testoMessaggio = document.getElementById("testoMessaggio");
+
+function iniziaGioco() {
+    menu.style.display = "none";
+    gioco.style.display = "block";
+    x = 100;
+    y = 50;
+    vy = 0;
+    carburante = 100;
+    fineGioco = false;
+    aggiornaSchermo();
+    richiestaAnimazione();
+}
+
+function richiestaAnimazione() {
+    if (!fineGioco && !inPausa) requestAnimationFrame(aggiorna);
+}
+
+function aggiorna() {
+    if (su && carburante > 0) {
+        vy -= 0.2 * motore;
+        carburante -= 0.3;
     }
+    vy += gravita;
+    y += vy;
 
-    function resetGame() {
-        x = 100;
-        y = 50;
-        vy = 0;
-        messageBox.style.display = "none";
-        isRunning = true;
-        requestAnimationFrame(update);
-    }
+    if (sinistra) x -= 2;
+    if (destra) x += 2;
 
-    function update() {
-        if (!isRunning) return;
+    navicella.style.left = x + "px";
+    navicella.style.top = y + "px";
 
-        if (up) vy += thrust;
-        vy += ay;
-        y += vy;
+    document.getElementById("velocita").innerText = "Velocità: " + vy.toFixed(2);
+    document.getElementById("carburante").innerText = "Carburante: " + Math.floor(carburante) + "%";
+    document.getElementById("monete").innerText = "Monete: " + monete;
+    document.getElementById("livello").innerText = "Livello: " + livello;
 
-        if (left) x -= 2;
-        if (right) x += 2;
-
-        // limiti schermo
-        if (x < 0) x = 0;
-        if (x > window.innerWidth - 50) x = window.innerWidth - 50;
-
-        spaceship.style.left = x + "px";
-        spaceship.style.top = y + "px";
-
-        let shipRect = spaceship.getBoundingClientRect();
-        let platRect = platform.getBoundingClientRect();
-
-        if (
-            shipRect.bottom >= platRect.top &&
-            shipRect.left < platRect.right &&
-            shipRect.right > platRect.left &&
-            vy > 0
-        ) {
-            if (vy < 1) {
-                showMessage("Atterraggio riuscito!");
-            } else {
-                showMessage("Sei schiantato!");
-            }
-            isRunning = false;
-            return;
+    const r1 = navicella.getBoundingClientRect();
+    const r2 = piattaforma.getBoundingClientRect();
+    if (r1.bottom >= r2.top && r1.left < r2.right && r1.right > r2.left) {
+        if (vy < 1) {
+            mostraMessaggio("Ben fatto!");
+            monete += 10;
+            livello++;
+        } else {
+            mostraMessaggio("Troppo veloce!");
         }
-
-        if (y + 20 > window.innerHeight) {
-            showMessage("Hai toccato il suolo!");
-            isRunning = false;
-            return;
-        }
-
-        requestAnimationFrame(update);
+        fineGioco = true;
+        return;
     }
-
-    function showMessage(text) {
-        messageText.innerText = text;
-        messageBox.style.display = "block";
+    if (y > window.innerHeight - 20) {
+        mostraMessaggio("Hai fallito!");
+        fineGioco = true;
+        return;
     }
+    richiestaAnimazione();
+}
 
-    window.addEventListener("keydown", (e) => {
-        if (e.key === "ArrowLeft" || e.key.toLowerCase() === "a") left = true;
-        if (e.key === "ArrowRight" || e.key.toLowerCase() === "d") right = true;
-        if (e.key === "ArrowUp" || e.key.toLowerCase() === "w") up = true;
-    });
+function mostraMessaggio(testo) {
+    testoMessaggio.innerText = testo;
+    messaggio.style.display = "flex";
+}
 
-    window.addEventListener("keyup", (e) => {
-        if (e.key === "ArrowLeft" || e.key.toLowerCase() === "a") left = false;
-        if (e.key === "ArrowRight" || e.key.toLowerCase() === "d") right = false;
-        if (e.key === "ArrowUp" || e.key.toLowerCase() === "w") up = false;
-    });
+function continuaGioco() {
+    messaggio.style.display = "none";
+    iniziaGioco();
+}
+
+function tornaMenu() {
+    gioco.style.display = "none";
+    messaggio.style.display = "none";
+    menu.style.display = "flex";
+}
+
+function compraCarburante(prezzo, quantita) {
+    if (monete >= prezzo) {
+        monete -= prezzo;
+        carburante += quantita;
+        chiudiNegozio();
+    }
+}
+
+function compraMotore(prezzo) {
+    if (monete >= prezzo) {
+        monete -= prezzo;
+        motore += 0.2;
+        chiudiNegozio();
+    }
+}
+
+function chiudiNegozio() {
+    document.getElementById("negozio").style.display = "none";
+    inPausa = false;
+    richiestaAnimazione();
+}
+
+function riprendiGioco() {
+    inPausa = false;
+    document.getElementById("pausa").style.display = "none";
+    richiestaAnimazione();
+}
+
+window.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowLeft" || e.key === "a") sinistra = true;
+    if (e.key === "ArrowRight" || e.key === "d") destra = true;
+    if (e.key === "ArrowUp" || e.key === "w") su = true;
+    if (e.key === "p") {
+        inPausa = !inPausa;
+        document.getElementById("pausa").style.display = inPausa ? "flex" : "none";
+        if (!inPausa) richiestaAnimazione();
+    }
+    if (e.key === "s") {
+        inPausa = true;
+        document.getElementById("negozio").style.display = "flex";
+    }
+});
+
+window.addEventListener("keyup", (e) => {
+    if (e.key === "ArrowLeft" || e.key === "a") sinistra = false;
+    if (e.key === "ArrowRight" || e.key === "d") destra = false;
+    if (e.key === "ArrowUp" || e.key === "w") su = false;
+});
 </script>
-
 </body>
 </html>
