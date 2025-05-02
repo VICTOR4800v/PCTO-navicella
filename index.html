@@ -3,30 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Atterraggio Astronave</title>
+    <title>Atterraggio Astronave - Space Landing</title>
     <style>
-        /* Manteniamo tutto lo stile originale */
         body {
             margin: 0;
             padding: 0;
             overflow: hidden;
             background-color: #000;
-            font-family: Arial, sans-serif;
+            font-family: 'Orbitron', Arial, sans-serif;
             color: white;
         }
+
+        @font-face {
+            font-family: 'Orbitron';
+            src: url('https://fonts.gstatic.com/s/orbitron/v29/yMJMMIlzdpvBhQQL_SC3X9yhF25-T1nys.woff2') format('woff2');
+            font-style: normal;
+            font-weight: 400;
+            font-display: swap;
+        }
+
+        @keyframes glow {
+            0% { text-shadow: 0 0 10px rgba(0, 255, 0, 0.7), 0 0 20px rgba(0, 255, 0, 0.5); }
+            50% { text-shadow: 0 0 20px rgba(0, 255, 0, 0.9), 0 0 30px rgba(0, 255, 0, 0.7); }
+            100% { text-shadow: 0 0 10px rgba(0, 255, 0, 0.7), 0 0 20px rgba(0, 255, 0, 0.5); }
+        }
+
         #contenitore-gioco {
             position: relative;
             width: 100vw;
             height: 100vh;
             display: none;
         }
-        #navicella {
+
+        #astronave {
             position: absolute;
             width: 80px;
             height: 30px;
             background-color: silver;
             border-radius: 40px 40px 5px 5px;
+            transition: transform 0.1s ease;
+            z-index: 10;
         }
+
+        #astronave.thrusting:before {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 30px;
+            width: 20px;
+            height: 15px;
+            background-color: orangered;
+            border-radius: 0 0 10px 10px;
+            animation: fiamma 0.1s infinite alternate;
+        }
+
+        #astronave:before {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 30px;
+            width: 20px;
+            height: 5px;
+            background-color: orangered;
+            border-radius: 0 0 10px 10px;
+        }
+
+        @keyframes fiamma {
+            from { height: 15px; background-color: orangered; }
+            to { height: 25px; background-color: yellow; }
+        }
+
         #piattaforma {
             position: absolute;
             width: 120px;
@@ -34,8 +80,18 @@
             background-color: #4CAF50;
             bottom: 30px;
             border-radius: 3px;
+            box-shadow: 0 0 15px #4CAF50;
         }
-        .schermata {
+
+        .asteroide {
+            position: absolute;
+            background-color: #808080;
+            border-radius: 50%;
+            z-index: 5;
+            box-shadow: inset -5px -5px 15px rgba(0, 0, 0, 0.4), 2px 2px 5px rgba(255, 255, 255, 0.1);
+        }
+
+        .schermo {
             position: absolute;
             width: 100vw;
             height: 100vh;
@@ -44,9 +100,27 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            text-align: center;
             z-index: 100;
+            background-image: radial-gradient(circle at center, #112211, #000000);
         }
-        .bottone {
+
+        .schermo h1 {
+            color: #4CAF50;
+            margin-bottom: 20px;
+            font-size: 3em;
+            text-shadow: 0 0 10px rgba(76, 175, 80, 0.7);
+            animation: glow 2s infinite;
+            letter-spacing: 3px;
+        }
+
+        .schermo p {
+            margin: 10px 0;
+            max-width: 600px;
+            line-height: 1.4;
+        }
+
+        .pulsante {
             background-color: #4CAF50;
             color: white;
             border: none;
@@ -55,27 +129,26 @@
             cursor: pointer;
             border-radius: 5px;
             margin: 10px;
+            transition: all 0.3s;
             text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
         }
-        .statistica {
-            position: absolute;
-            top: 20px;
-            background-color: rgba(0,0,0,0.7);
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 14px;
-            border: 1px solid #4CAF50;
+
+        .pulsante:hover {
+            background-color: #388E3C;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.7);
         }
-        #velocita {
-            right: 20px;
+
+        #pulsanti-menu {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
         }
-        #carburante {
-            right: 170px;
-        }
-        #monete {
-            left: 20px;
-        }
-        #schermata-messaggio {
+
+        #messaggio-gioco {
             position: absolute;
             top: 50%;
             left: 50%;
@@ -87,113 +160,373 @@
             text-align: center;
             display: none;
             z-index: 100;
+            min-width: 300px;
+            border: 1px solid #4CAF50;
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+        }
+
+        .statistiche-gioco {
+            position: absolute;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border: 1px solid #4CAF50;
+        }
+
+        #indicatore-velocita {
+            top: 20px;
+            right: 20px;
+        }
+
+        #indicatore-carburante {
+            top: 20px;
+            right: 170px;
+        }
+
+        #indicatore-monete {
+            top: 20px;
+            left: 20px;
+        }
+
+        #contenitore-negozio {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 101;
+            width: 300px;
+            border: 1px solid #4CAF50;
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+        }
+
+        .articolo-negozio {
+            margin: 15px 0;
+            padding: 10px;
+            border: 1px solid #4CAF50;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .articolo-negozio button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        .articolo-negozio button:hover {
+            background-color: #388E3C;
+        }
+
+        .articolo-negozio button:disabled {
+            background-color: #777;
+            cursor: not-allowed;
+        }
+
+        #pulsante-pausa {
+            position: absolute;
+            top: 20px;
+            right: 320px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+            border: 1px solid #4CAF50;
+        }
+
+        #pulsante-negozio {
+            position: absolute;
+            top: 20px;
+            right: 380px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+            border: 1px solid #4CAF50;
+        }
+
+        .istruzioni {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            max-width: 600px;
+            border: 1px solid #4CAF50;
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .istruzioni-flex {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 20px;
+            max-width: 900px;
+        }
+
+        .istruzioni-colonna {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .tasto {
+            display: inline-block;
+            background-color: #555;
+            padding: 5px 10px;
+            border-radius: 3px;
+            margin: 0 5px;
+            font-family: monospace;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .indicatore-livello {
+            position: absolute;
+            top: 60px;
+            left: 20px;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 5px;
+            border: 1px solid #4CAF50;
+        }
+
+        #stelle {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        #indicatore-punteggio {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 5px;
+            border: 1px solid #4CAF50;
+        }
+
+        .logo-contenitore {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .logo-astronave {
+            position: absolute;
+            top: -70px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 60px;
+            animation: fluttuare 4s ease-in-out infinite;
+        }
+
+        @keyframes fluttuare {
+            0% { transform: translateX(-50%) translateY(0px); }
+            50% { transform: translateX(-50%) translateY(-15px); }
+            100% { transform: translateX(-50%) translateY(0px); }
+        }
+        
+        .pianeta {
+            position: absolute;
+            border-radius: 50%;
+            z-index: -1;
+        }
+        
+        #pianeta1 {
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle at 30% 30%, #699, #366);
+            top: 15%;
+            left: 10%;
+            box-shadow: inset -15px -15px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(100, 153, 153, 0.5);
+        }
+        
+        #pianeta2 {
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle at 30% 30%, #a67, #744);
+            bottom: 20%;
+            right: 15%;
+            box-shadow: inset -10px -10px 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(170, 102, 119, 0.5);
         }
     </style>
 </head>
 <body>
-    <!-- Schermata principale -->
-    <div id="menu-principale" class="schermata">
-        <h1>Atterraggio Astronave</h1>
-        <p>Pilota la tua astronave e atterra senza schiantarti!</p>
-        <button id="bottone-gioca" class="bottone">Inizia</button>
-        <button id="bottone-istruzioni" class="bottone">Istruzioni</button>
-    </div>
-
-    <!-- Schermata gioco -->
+    <!-- Codice del gioco -->
     <div id="contenitore-gioco">
-        <div id="navicella"></div>
+        <canvas id="stelle"></canvas>
+        <div id="astronave"></div>
         <div id="piattaforma"></div>
-        <div id="velocita" class="statistica">Velocità: 0</div>
-        <div id="carburante" class="statistica">Carburante: 100%</div>
-        <div id="monete" class="statistica">Monete: 0</div>
+
+        <div id="indicatore-velocita" class="statistiche-gioco">Velocità: 0.00</div>
+        <div id="indicatore-carburante" class="statistiche-gioco">Carburante: 100%</div>
+        <div id="indicatore-monete" class="statistiche-gioco">Monete: 0</div>
+
+        <button id="pulsante-pausa">⏸️ Pausa</button>
+        <button id="pulsante-negozio">🛒 Negozio</button>
     </div>
 
-    <!-- Messaggio risultato -->
-    <div id="schermata-messaggio">
-        <h2 id="titolo-messaggio">Vittoria!</h2>
-        <p id="testo-messaggio">Hai atterrato correttamente!</p>
-        <button id="bottone-continua" class="bottone">Continua</button>
-        <button id="bottone-menu" class="bottone">Menu</button>
+    <!-- Schermata principale del menu -->
+    <div id="menu-principale" class="schermo">
+        <h1>Atterra Navicella</h1>
+        <div class="logo-contenitore">
+            <div class="logo-astronave">
+                <div id="menu-astronave" style="width: 60px; height: 25px; background-color: silver; border-radius: 30px 30px 5px 5px; position: relative;">
+                    <div style="position: absolute; bottom: -5px; left: 20px; width: 20px; height: 5px; background-color: orangered; border-radius: 0 0 10px 10px;"></div>
+                </div>
+            </div>
+        </div>
+        <p>Pilota la tua astronave attraverso un campo di asteroidi e atterra con precisione sulla piattaforma!</p>
+        <div id="pulsanti-menu">
+            <button id="pulsante-gioca" class="pulsante">Inizia Missione</button>
+            <button id="pulsante-istruzioni" class="pulsante">Manuale di Volo</button>
+        </div>
     </div>
 
     <script>
-        // Elementi
-        var navicella = document.getElementById("navicella");
-        var piattaforma = document.getElementById("piattaforma");
-        var contGioco = document.getElementById("contenitore-gioco");
-        var menuPrincipale = document.getElementById("menu-principale");
-        var schermataMessaggio = document.getElementById("schermata-messaggio");
-        var titoloMessaggio = document.getElementById("titolo-messaggio");
-        var testoMessaggio = document.getElementById("testo-messaggio");
-        var bottoneContinua = document.getElementById("bottone-continua");
-        var bottoneMenu = document.getElementById("bottone-menu");
-        var bottoneGioca = document.getElementById("bottone-gioca");
+        const astronave = document.getElementById('astronave');
+        const piattaforma = document.getElementById('piattaforma');
+        const messaggioGioco = document.getElementById('messaggio-gioco');
+        const indicatoreVelocita = document.getElementById('indicatore-velocita');
+        const indicatoreCarburante = document.getElementById('indicatore-carburante');
+        const indicatoreMonete = document.getElementById('indicatore-monete');
+        const contenitoreGioco = document.getElementById('contenitore-gioco');
+        const menuPrincipale = document.getElementById('menu-principale');
+        const pulsanteGioca = document.getElementById('pulsante-gioca');
+        const pulsanteIstruzioni = document.getElementById('pulsante-istruzioni');
+        const pulsantePausa = document.getElementById('pulsante-pausa');
+        const pulsanteNegozio = document.getElementById('pulsante-negozio');
+        
+        let astronaveX, astronaveY, velocita, accelerazione;
+        let carburante = 100;
+        let carburanteMassimo = 100;
+        let velocitaOrizzontale = 8;
+        let monete = 0;
+        let tasti = {};
+        let asteroidi = [];
+        let animazioneId;
+        let ultimaVolta = 0;
 
-        // Statistiche
-        var vel = 0;
-        var posY = 50;
-        var acc = 0.05;
-        var carburante = 100;
-        var giocoAttivo = false;
+        function spawnAsteroide() {
+            const asteroide = document.createElement('div');
+            asteroide.classList.add('asteroide');
+            const dimensione = Math.random() * 30 + 20;
+            asteroide.style.width = `${dimensione}px`;
+            asteroide.style.height = `${dimensione}px`;
+            asteroide.style.left = `${Math.random() * (window.innerWidth - dimensione)}px`;
+            asteroide.style.top = `${window.innerHeight + dimensione}px`;
+            asteroide.speed = Math.random() * 1 + 0.5;
+            contenitoreGioco.appendChild(asteroide);
+            asteroidi.push(asteroide);
+        }
 
-        // Tasti
-        var tastiPremuti = {};
-        document.addEventListener("keydown", function(e) { tastiPremuti[e.key.toLowerCase()] = true; });
-        document.addEventListener("keyup", function(e) { tastiPremuti[e.key.toLowerCase()] = false; });
+        window.addEventListener('keydown', function(e) {
+            tasti[e.key.toLowerCase()] = true;
+            if (e.key.toLowerCase() === 'p') togglePausa();
+            if (e.key.toLowerCase() === 's') toggleNegozio();
+        });
+
+        window.addEventListener('keyup', function(e) {
+            tasti[e.key.toLowerCase()] = false;
+        });
+
+        window.addEventListener('resize', function() {
+            piattaforma.style.left = (window.innerWidth / 2 - piattaforma.offsetWidth / 2) + 'px';
+            if (astronaveX > window.innerWidth - astronave.offsetWidth) {
+                astronaveX = window.innerWidth - astronave.offsetWidth;
+            }
+        });
+
+        function mostraMenuPrincipale() {
+            menuPrincipale.style.display = 'flex';
+            contenitoreGioco.style.display = 'none';
+            messaggioGioco.style.display = 'none';
+        }
 
         function avviaGioco() {
-            menuPrincipale.style.display = "none";
-            contGioco.style.display = "block";
-            posY = 50;
-            vel = 0;
-            carburante = 100;
-            giocoAttivo = true;
-            aggiorna();
+            menuPrincipale.style.display = 'none';
+            contenitoreGioco.style.display = 'block';
+            resetGioco();
+            loopGioco(0);
         }
 
-        function aggiorna() {
-            if (!giocoAttivo) return;
-
-            if ((tastiPremuti["w"] || tastiPremuti["arrowup"]) && carburante > 0) {
-                vel -= 0.1;
-                carburante -= 0.3;
+        function togglePausa() {
+            if (animazioneId) {
+                cancelAnimationFrame(animazioneId);
+                animazioneId = null;
+                pulsantePausa.textContent = '⏸️ Pausa';
             } else {
-                vel += acc;
+                loopGioco(ultimaVolta);
+                pulsantePausa.textContent = '⏸️ Riprendi';
             }
-
-            posY += vel;
-            if (posY < 0) posY = 0;
-            navicella.style.top = posY + "px";
-            document.getElementById("velocita").innerHTML = "Velocità: " + vel.toFixed(2);
-            document.getElementById("carburante").innerHTML = "Carburante: " + Math.floor(carburante) + "%";
-
-            var limite = window.innerHeight - navicella.offsetHeight - 30;
-            if (posY >= limite) {
-                giocoAttivo = false;
-                contGioco.style.display = "none";
-                schermataMessaggio.style.display = "block";
-                if (vel < 1) {
-                    titoloMessaggio.innerHTML = "Complimenti!";
-                    testoMessaggio.innerHTML = "Hai atterrato con successo!";
-                } else {
-                    titoloMessaggio.innerHTML = "Schianto!";
-                    testoMessaggio.innerHTML = "Troppa velocità in atterraggio.";
-                }
-                return;
-            }
-            requestAnimationFrame(aggiorna);
         }
 
-        bottoneGioca.onclick = avviaGioco;
-        bottoneContinua.onclick = function() {
-            schermataMessaggio.style.display = "none";
-            contGioco.style.display = "block";
-            avviaGioco();
-        };
-        bottoneMenu.onclick = function() {
-            schermataMessaggio.style.display = "none";
-            menuPrincipale.style.display = "flex";
-        };
+        function toggleNegozio() {
+            // Logica per aprire o chiudere il negozio
+        }
+
+        function loopGioco(timestamp) {
+            if (!animazioneId) return;
+            const deltaTime = (timestamp - ultimaVolta) / 16.67;
+            ultimaVolta = timestamp;
+
+            if (tasti['arrowup'] || tasti['w']) {
+                velocita -= accelerazione * deltaTime;
+                carburante -= 0.5 * deltaTime;
+                astronave.classList.add('thrusting');
+            } else {
+                velocita += accelerazione * deltaTime;
+                astronave.classList.remove('thrusting');
+            }
+
+            astronaveY += velocita * deltaTime;
+
+            if (astronaveY < 0) astronaveY = 0;
+            if (astronaveY + astronave.offsetHeight >= window.innerHeight) {
+                messaggioGioco.textContent = 'L\'astronave è atterrata con successo!';
+                messaggioGioco.style.display = 'block';
+            }
+
+            astronave.style.left = astronaveX + 'px';
+            astronave.style.top = astronaveY + 'px';
+
+            indicatoreVelocita.textContent = `Velocità: ${velocita.toFixed(2)}`;
+            indicatoreCarburante.textContent = `Carburante: ${Math.floor(carburante)}%`;
+            animazioneId = requestAnimationFrame(loopGioco);
+        }
+
+        function resetGioco() {
+            velocita = 0.1;
+            accelerazione = 0.06;
+            carburante = carburanteMassimo;
+            asteroidi.forEach(a => a.remove());
+            asteroidi = [];
+            spawnAsteroide();
+            ultimaVolta = performance.now();
+        }
+
+        pulsanteGioca.addEventListener('click', avviaGioco);
+        pulsanteIstruzioni.addEventListener('click', mostraMenuPrincipale);
+
+        spawnAsteroide();
+        mostraMenuPrincipale();
     </script>
 </body>
 </html>
