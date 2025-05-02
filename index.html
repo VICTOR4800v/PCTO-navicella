@@ -784,7 +784,9 @@ if (currentTop + asteroid.offsetHeight < 0) {
 
         asteroids.forEach(a => a.remove());
         asteroids = [];
-        for (let i = 0; i < level + 2; i++) spawnAsteroid();
+        const asteroidCount = Math.max(6, level + 2); // Almeno 6, aumenta con il livello
+for (let i = 0; i < asteroidCount; i++) spawnAsteroid();
+
 
         lastTime = performance.now();
     }
