@@ -3,15 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Atterraggio Astronave</title>
+    <title>Space Landing - Atterraggio Astronave</title>
     <style>
         body {
             margin: 0;
             padding: 0;
             overflow: hidden;
             background-color: #000;
-            font-family: Arial, sans-serif;
+            font-family: 'Orbitron', Arial, sans-serif;
             color: white;
+        }
+
+        @font-face {
+            font-family: 'Orbitron';
+            src: url('https://fonts.gstatic.com/s/orbitron/v29/yMJMMIlzdpvBhQQL_SC3X9yhF25-T1nys.woff2') format('woff2');
+            font-style: normal;
+            font-weight: 400;
+            font-display: swap;
+        }
+
+        @keyframes glow {
+            0% { text-shadow: 0 0 10px rgba(0, 255, 0, 0.7), 0 0 20px rgba(0, 255, 0, 0.5); }
+            50% { text-shadow: 0 0 20px rgba(0, 255, 0, 0.9), 0 0 30px rgba(0, 255, 0, 0.7); }
+            100% { text-shadow: 0 0 10px rgba(0, 255, 0, 0.7), 0 0 20px rgba(0, 255, 0, 0.5); }
         }
 
         #game-container {
@@ -28,6 +42,7 @@
             background-color: silver;
             border-radius: 40px 40px 5px 5px;
             transition: transform 0.1s ease;
+            z-index: 10;
         }
 
         #spaceship.thrusting:before {
@@ -54,8 +69,8 @@
         }
 
         @keyframes flame {
-            from { height: 15px; }
-            to { height: 25px; }
+            from { height: 15px; background-color: orangered; }
+            to { height: 25px; background-color: yellow; }
         }
 
         #platform {
@@ -65,6 +80,15 @@
             background-color: #4CAF50;
             bottom: 30px;
             border-radius: 3px;
+            box-shadow: 0 0 15px #4CAF50;
+        }
+
+        .asteroid {
+            position: absolute;
+            background-color: #808080;
+            border-radius: 50%;
+            z-index: 5;
+            box-shadow: inset -5px -5px 15px rgba(0, 0, 0, 0.4), 2px 2px 5px rgba(255, 255, 255, 0.1);
         }
 
         .screen {
@@ -78,13 +102,16 @@
             justify-content: center;
             text-align: center;
             z-index: 100;
+            background-image: radial-gradient(circle at center, #112211, #000000);
         }
 
         .screen h1 {
             color: #4CAF50;
             margin-bottom: 20px;
-            font-size: 2.5em;
+            font-size: 3em;
             text-shadow: 0 0 10px rgba(76, 175, 80, 0.7);
+            animation: glow 2s infinite;
+            letter-spacing: 3px;
         }
 
         .screen p {
@@ -102,11 +129,16 @@
             cursor: pointer;
             border-radius: 5px;
             margin: 10px;
-            transition: background-color 0.3s;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
         }
 
         .button:hover {
             background-color: #388E3C;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.7);
         }
 
         #menu-buttons {
@@ -129,6 +161,8 @@
             display: none;
             z-index: 100;
             min-width: 300px;
+            border: 1px solid #4CAF50;
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
         }
 
         .game-stat {
@@ -137,6 +171,7 @@
             border-radius: 5px;
             font-size: 14px;
             background-color: rgba(0, 0, 0, 0.7);
+            border: 1px solid #4CAF50;
         }
 
         #velocity-indicator {
@@ -166,6 +201,8 @@
             text-align: center;
             z-index: 101;
             width: 300px;
+            border: 1px solid #4CAF50;
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
         }
 
         .shop-item {
@@ -206,6 +243,7 @@
             border-radius: 5px;
             padding: 10px;
             cursor: pointer;
+            border: 1px solid #4CAF50;
         }
 
         #shop-btn {
@@ -218,6 +256,7 @@
             border-radius: 5px;
             padding: 10px;
             cursor: pointer;
+            border: 1px solid #4CAF50;
         }
 
         .instructions {
@@ -226,6 +265,22 @@
             border-radius: 10px;
             margin: 20px 0;
             max-width: 600px;
+            border: 1px solid #4CAF50;
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .instruction-flex {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 20px;
+            max-width: 900px;
+        }
+
+        .instruction-column {
+            flex: 1;
+            min-width: 250px;
         }
 
         .key {
@@ -235,6 +290,7 @@
             border-radius: 3px;
             margin: 0 5px;
             font-family: monospace;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
         }
 
         .level-indicator {
@@ -244,6 +300,7 @@
             padding: 10px;
             background-color: rgba(0, 0, 0, 0.7);
             border-radius: 5px;
+            border: 1px solid #4CAF50;
         }
 
         #stars {
@@ -253,6 +310,61 @@
             width: 100%;
             height: 100%;
             z-index: -1;
+        }
+
+        #score-indicator {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 5px;
+            border: 1px solid #4CAF50;
+        }
+
+        .logo-container {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .ship-logo {
+            position: absolute;
+            top: -70px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 60px;
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateX(-50%) translateY(0px); }
+            50% { transform: translateX(-50%) translateY(-15px); }
+            100% { transform: translateX(-50%) translateY(0px); }
+        }
+        
+        .planet {
+            position: absolute;
+            border-radius: 50%;
+            z-index: -1;
+        }
+        
+        #planet1 {
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle at 30% 30%, #699, #366);
+            top: 15%;
+            left: 10%;
+            box-shadow: inset -15px -15px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(100, 153, 153, 0.5);
+        }
+        
+        #planet2 {
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle at 30% 30%, #a67, #744);
+            bottom: 20%;
+            right: 15%;
+            box-shadow: inset -10px -10px 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(170, 102, 119, 0.5);
         }
     </style>
 </head>
@@ -274,40 +386,62 @@
 
     <!-- Schermata principale del menu -->
     <div id="main-menu" class="screen">
-        <h1>Space Landing 🚀</h1>
-        <p>Atterra l'astronave sulla piattaforma verde e diventa il miglior pilota spaziale!</p>
+        <div class="logo-container">
+            <h1>Atterra Navicella</h1>
+            <div class="ship-logo">
+                <div id="menu-spaceship" style="width: 60px; height: 25px; background-color: silver; border-radius: 30px 30px 5px 5px; position: relative;">
+                    <div style="position: absolute; bottom: -5px; left: 20px; width: 20px; height: 5px; background-color: orangered; border-radius: 0 0 10px 10px;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="planet" id="planet1"></div>
+        <div class="planet" id="planet2"></div>
+        
+        <p>Pilota la tua astronave attraverso un campo di asteroidi e atterra con precisione sulla piattaforma!</p>
+        <p>Dimostra le tue abilità di pilota e conquista la galassia livello dopo livello.</p>
         
         <div id="menu-buttons">
-            <button id="play-btn" class="button">Gioca</button>
-            <button id="instructions-btn" class="button">Come si gioca</button>
+            <button id="play-btn" class="button">Inizia Missione</button>
+            <button id="instructions-btn" class="button">Manuale di Volo</button>
         </div>
     </div>
 
     <!-- Schermata delle istruzioni -->
     <div id="instructions-screen" class="screen" style="display:none;">
-        <h1>Come si gioca</h1>
+        <h1>Manuale di Volo</h1>
         
-        <div class="instructions">
-            <h2>Comandi</h2>
-            <p><span class="key">W</span> o <span class="key">↑</span> - Attiva i propulsori (consuma carburante)</p>
-            <p><span class="key">A</span> o <span class="key">←</span> - Muovi a sinistra</p>
-            <p><span class="key">D</span> o <span class="key">→</span> - Muovi a destra</p>
-            <p><span class="key">P</span> - Pausa</p>
-            <p><span class="key">S</span> - Apri il negozio</p>
-        </div>
-
-        <div class="instructions">
-            <h2>Obiettivo</h2>
-            <p>Atterra l'astronave sulla piattaforma verde senza schiantarti!</p>
-            <p>Per un atterraggio sicuro, la tua velocità deve essere inferiore a 1.0</p>
-            <p>Guadagnerai monete per ogni atterraggio riuscito, che potrai spendere nel negozio.</p>
-        </div>
-
-        <div class="instructions">
-            <h2>Consigli</h2>
-            <p>Gestisci con cura il carburante! Se finisce, non potrai più rallentare la discesa.</p>
-            <p>La gravitazione è sempre in agguato! Se non usi i propulsori, l'astronave accelererà verso il basso.</p>
-            <p>Man mano che avanzi nei livelli, la piattaforma diventerà più piccola e la gravità aumenterà!</p>
+        <div class="instruction-flex">
+            <div class="instruction-column">
+                <div class="instructions">
+                    <h2>Comandi</h2>
+                    <p><span class="key">W</span> o <span class="key">↑</span> - Attiva i propulsori</p>
+                    <p><span class="key">A</span> o <span class="key">←</span> - Muovi a sinistra</p>
+                    <p><span class="key">D</span> o <span class="key">→</span> - Muovi a destra</p>
+                    <p><span class="key">P</span> - Pausa</p>
+                    <p><span class="key">S</span> - Apri il negozio</p>
+                </div>
+            </div>
+            
+            <div class="instruction-column">
+                <div class="instructions">
+                    <h2>Obiettivo</h2>
+                    <p>Atterra sulla piattaforma verde senza schiantarti!</p>
+                    <p>Velocità di atterraggio sicura: < 1.0</p>
+                    <p>Evita gli asteroidi durante la discesa.</p>
+                    <p>Raccogli monete per potenziare la navicella.</p>
+                </div>
+            </div>
+            
+            <div class="instruction-column">
+                <div class="instructions">
+                    <h2>Consigli</h2>
+                    <p>Gestisci il carburante con attenzione.</p>
+                    <p>Gli asteroidi possono danneggiare la navicella!</p>
+                    <p>La piattaforma si rimpicciolisce ad ogni livello.</p>
+                    <p>La gravità aumenta progressivamente.</p>
+                </div>
+            </div>
         </div>
         
         <button id="back-to-menu-btn" class="button">Torna al menu</button>
