@@ -2,157 +2,198 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Atterraggio Navicella</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atterraggio Astronave</title>
     <style>
+        /* Manteniamo tutto lo stile originale */
         body {
             margin: 0;
-            background-color: black;
-            color: white;
-            font-family: Arial, sans-serif;
+            padding: 0;
             overflow: hidden;
+            background-color: #000;
+            font-family: Arial, sans-serif;
+            color: white;
         }
-
         #contenitore-gioco {
             position: relative;
             width: 100vw;
             height: 100vh;
+            display: none;
         }
-
         #navicella {
-            width: 60px;
+            position: absolute;
+            width: 80px;
             height: 30px;
             background-color: silver;
-            border-radius: 30px 30px 5px 5px;
-            position: absolute;
-            top: 50px;
-            left: 50%;
-            transform: translateX(-50%);
+            border-radius: 40px 40px 5px 5px;
         }
-
         #piattaforma {
-            width: 100px;
+            position: absolute;
+            width: 120px;
             height: 10px;
-            background-color: green;
-            position: absolute;
+            background-color: #4CAF50;
             bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
+            border-radius: 3px;
         }
-
-        #info {
+        .schermata {
             position: absolute;
-            top: 10px;
-            left: 10px;
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 10px;
-            border: 1px solid lime;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .bottone {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            cursor: pointer;
             border-radius: 5px;
+            margin: 10px;
+            text-transform: uppercase;
         }
-
-        #messaggio {
+        .statistica {
             position: absolute;
-            top: 40%;
+            top: 20px;
+            background-color: rgba(0,0,0,0.7);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            border: 1px solid #4CAF50;
+        }
+        #velocita {
+            right: 20px;
+        }
+        #carburante {
+            right: 170px;
+        }
+        #monete {
+            left: 20px;
+        }
+        #schermata-messaggio {
+            position: absolute;
+            top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             background-color: rgba(0, 0, 0, 0.9);
+            color: white;
             padding: 20px;
-            border: 2px solid white;
             border-radius: 10px;
-            display: none;
             text-align: center;
-        }
-
-        button {
-            padding: 10px 20px;
-            margin-top: 15px;
+            display: none;
+            z-index: 100;
         }
     </style>
 </head>
 <body>
+    <!-- Schermata principale -->
+    <div id="menu-principale" class="schermata">
+        <h1>Atterraggio Astronave</h1>
+        <p>Pilota la tua astronave e atterra senza schiantarti!</p>
+        <button id="bottone-gioca" class="bottone">Inizia</button>
+        <button id="bottone-istruzioni" class="bottone">Istruzioni</button>
+    </div>
+
+    <!-- Schermata gioco -->
     <div id="contenitore-gioco">
         <div id="navicella"></div>
         <div id="piattaforma"></div>
-        <div id="info">
-            <div id="velocita">Velocità: 0</div>
-            <div id="carburante">Carburante: 100%</div>
-        </div>
-        <div id="messaggio">
-            <div id="testo-messaggio"></div>
-            <button onclick="ripartiGioco()">Riprova</button>
-        </div>
+        <div id="velocita" class="statistica">Velocità: 0</div>
+        <div id="carburante" class="statistica">Carburante: 100%</div>
+        <div id="monete" class="statistica">Monete: 0</div>
+    </div>
+
+    <!-- Messaggio risultato -->
+    <div id="schermata-messaggio">
+        <h2 id="titolo-messaggio">Vittoria!</h2>
+        <p id="testo-messaggio">Hai atterrato correttamente!</p>
+        <button id="bottone-continua" class="bottone">Continua</button>
+        <button id="bottone-menu" class="bottone">Menu</button>
     </div>
 
     <script>
-        // Variabili principali
-        const navicella = document.getElementById("navicella");
-        const piattaforma = document.getElementById("piattaforma");
-        const infoVelocita = document.getElementById("velocita");
-        const infoCarburante = document.getElementById("carburante");
-        const messaggio = document.getElementById("messaggio");
-        const testoMessaggio = document.getElementById("testo-messaggio");
+        // Elementi
+        var navicella = document.getElementById("navicella");
+        var piattaforma = document.getElementById("piattaforma");
+        var contGioco = document.getElementById("contenitore-gioco");
+        var menuPrincipale = document.getElementById("menu-principale");
+        var schermataMessaggio = document.getElementById("schermata-messaggio");
+        var titoloMessaggio = document.getElementById("titolo-messaggio");
+        var testoMessaggio = document.getElementById("testo-messaggio");
+        var bottoneContinua = document.getElementById("bottone-continua");
+        var bottoneMenu = document.getElementById("bottone-menu");
+        var bottoneGioca = document.getElementById("bottone-gioca");
 
-        let posizioneY = 50;
-        let velocita = 0;
-        let accelerazione = 0.05;
-        let spinta = -0.2;
-        let carburante = 100;
-        let inGioco = true;
-        let tastoPremuto = false;
+        // Statistiche
+        var vel = 0;
+        var posY = 50;
+        var acc = 0.05;
+        var carburante = 100;
+        var giocoAttivo = false;
 
-        document.addEventListener("keydown", function(evento) {
-            if (evento.key === "ArrowUp" || evento.key === "w") {
-                tastoPremuto = true;
-            }
-        });
+        // Tasti
+        var tastiPremuti = {};
+        document.addEventListener("keydown", function(e) { tastiPremuti[e.key.toLowerCase()] = true; });
+        document.addEventListener("keyup", function(e) { tastiPremuti[e.key.toLowerCase()] = false; });
 
-        document.addEventListener("keyup", function(evento) {
-            if (evento.key === "ArrowUp" || evento.key === "w") {
-                tastoPremuto = false;
-            }
-        });
+        function avviaGioco() {
+            menuPrincipale.style.display = "none";
+            contGioco.style.display = "block";
+            posY = 50;
+            vel = 0;
+            carburante = 100;
+            giocoAttivo = true;
+            aggiorna();
+        }
 
-        function aggiornaGioco() {
-            if (!inGioco) return;
+        function aggiorna() {
+            if (!giocoAttivo) return;
 
-            if (tastoPremuto && carburante > 0) {
-                velocita += spinta;
+            if ((tastiPremuti["w"] || tastiPremuti["arrowup"]) && carburante > 0) {
+                vel -= 0.1;
                 carburante -= 0.3;
             } else {
-                velocita += accelerazione;
+                vel += acc;
             }
 
-            posizioneY += velocita;
-            if (posizioneY < 0) posizioneY = 0;
+            posY += vel;
+            if (posY < 0) posY = 0;
+            navicella.style.top = posY + "px";
+            document.getElementById("velocita").innerHTML = "Velocità: " + vel.toFixed(2);
+            document.getElementById("carburante").innerHTML = "Carburante: " + Math.floor(carburante) + "%";
 
-            navicella.style.top = posizioneY + "px";
-            infoVelocita.innerHTML = "Velocità: " + velocita.toFixed(2);
-            infoCarburante.innerHTML = "Carburante: " + Math.floor(carburante) + "%";
-
-            // Controllo atterraggio
-            const fondo = window.innerHeight - 30 - navicella.offsetHeight;
-            if (posizioneY >= fondo) {
-                inGioco = false;
-                if (velocita < 1) {
-                    testoMessaggio.innerHTML = "Atterraggio riuscito!";
+            var limite = window.innerHeight - navicella.offsetHeight - 30;
+            if (posY >= limite) {
+                giocoAttivo = false;
+                contGioco.style.display = "none";
+                schermataMessaggio.style.display = "block";
+                if (vel < 1) {
+                    titoloMessaggio.innerHTML = "Complimenti!";
+                    testoMessaggio.innerHTML = "Hai atterrato con successo!";
                 } else {
-                    testoMessaggio.innerHTML = "Schianto! Troppa velocità.";
+                    titoloMessaggio.innerHTML = "Schianto!";
+                    testoMessaggio.innerHTML = "Troppa velocità in atterraggio.";
                 }
-                messaggio.style.display = "block";
+                return;
             }
-
-            requestAnimationFrame(aggiornaGioco);
+            requestAnimationFrame(aggiorna);
         }
 
-        function ripartiGioco() {
-            posizioneY = 50;
-            velocita = 0;
-            carburante = 100;
-            inGioco = true;
-            messaggio.style.display = "none";
-            aggiornaGioco();
-        }
-
-        aggiornaGioco();
+        bottoneGioca.onclick = avviaGioco;
+        bottoneContinua.onclick = function() {
+            schermataMessaggio.style.display = "none";
+            contGioco.style.display = "block";
+            avviaGioco();
+        };
+        bottoneMenu.onclick = function() {
+            schermataMessaggio.style.display = "none";
+            menuPrincipale.style.display = "flex";
+        };
     </script>
 </body>
 </html>
