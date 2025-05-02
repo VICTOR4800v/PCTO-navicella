@@ -6,108 +6,729 @@
     <title>Space Landing - Atterraggio Astronave</title>
     <style>
         body {
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    background-color: #000;
-    font-family: Arial, sans-serif;
-}
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
 
-#game-container {
-    position: relative;
-    width: 100vw;
-    height: 100vh;
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"><rect width="400" height="400" fill="black"/><circle cx="10" cy="10" r="1" fill="white"/><circle cx="25" cy="60" r="1.5" fill="white"/><circle cx="40" cy="30" r="1" fill="white"/><circle cx="60" cy="80" r="2" fill="white"/><circle cx="120" cy="50" r="1" fill="white"/><circle cx="90" cy="120" r="1.5" fill="white"/><circle cx="160" cy="90" r="1" fill="white"/><circle cx="220" cy="180" r="1.5" fill="white"/><circle cx="280" cy="70" r="1" fill="white"/><circle cx="350" cy="120" r="2" fill="white"/><circle cx="330" cy="220" r="1" fill="white"/><circle cx="380" cy="380" r="1.5" fill="white"/><circle cx="200" cy="250" r="1" fill="white"/><circle cx="150" cy="350" r="1.5" fill="white"/><circle cx="250" cy="300" r="1" fill="white"/><circle cx="300" cy="350" r="2" fill="white"/></svg>');
-    background-repeat: repeat;
-}
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: none;
+        }
 
-#spaceship {
-    position: absolute;
-    width: 80px;
-    height: 30px;
-    background-color: silver;
-    top: 50px;
-    left: calc(50% - 40px);
-    border-radius: 40px 40px 5px 5px;
-}
+        #spaceship {
+            position: absolute;
+            width: 80px;
+            height: 30px;
+            background-color: silver;
+            border-radius: 40px 40px 5px 5px;
+            transition: transform 0.1s ease;
+        }
 
-#spaceship:before {
-    content: '';
-    position: absolute;
-    bottom: -5px;
-    left: 30px;
-    width: 20px;
-    height: 5px;
-    background-color: orangered;
-    border-radius: 0 0 10px 10px;
-}
+        #spaceship.thrusting:before {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 30px;
+            width: 20px;
+            height: 15px;
+            background-color: orangered;
+            border-radius: 0 0 10px 10px;
+            animation: flame 0.1s infinite alternate;
+        }
 
-#platform {
-    position: absolute;
-    width: 120px;
-    height: 10px;
-    background-color: #4CAF50;
-    bottom: 30px;
-    left: calc(50% - 60px);
-    border-radius: 3px;
-}
+        #spaceship:before {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 30px;
+            width: 20px;
+            height: 5px;
+            background-color: orangered;
+            border-radius: 0 0 10px 10px;
+        }
 
-#message {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 20px;
-    border-radius: 10px;
-    text-align: center;
-    display: none;
-    z-index: 100;
-}
+        @keyframes flame {
+            from { height: 15px; }
+            to { height: 25px; }
+        }
 
-#instructions {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    color: white;
-    background-color: rgba(0, 0, 0, 0.7);
-    padding: 10px;
-    border-radius: 5px;
-    font-size: 14px;
-}
+        #platform {
+            position: absolute;
+            width: 120px;
+            height: 10px;
+            background-color: #4CAF50;
+            bottom: 30px;
+            border-radius: 3px;
+        }
 
-#restart-btn {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-top: 10px;
-    font-size: 16px;
-}
+        .screen {
+            position: absolute;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            z-index: 100;
+        }
 
-#restart-btn:hover {
-    background-color: #388E3C;
-}
+        .screen h1 {
+            color: #4CAF50;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            text-shadow: 0 0 10px rgba(76, 175, 80, 0.7);
+        }
+
+        .screen p {
+            margin: 10px 0;
+            max-width: 600px;
+            line-height: 1.4;
+        }
+
+        .button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 10px;
+            transition: background-color 0.3s;
+        }
+
+        .button:hover {
+            background-color: #388E3C;
+        }
+
+        #menu-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        #game-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+            z-index: 100;
+            min-width: 300px;
+        }
+
+        .game-stat {
+            position: absolute;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        #velocity-indicator {
+            top: 20px;
+            right: 20px;
+        }
+
+        #fuel-indicator {
+            top: 20px;
+            right: 170px;
+        }
+
+        #coins-indicator {
+            top: 20px;
+            left: 20px;
+        }
+
+        #shop-container {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 101;
+            width: 300px;
+        }
+
+        .shop-item {
+            margin: 15px 0;
+            padding: 10px;
+            border: 1px solid #4CAF50;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .shop-item button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        .shop-item button:hover {
+            background-color: #388E3C;
+        }
+
+        .shop-item button:disabled {
+            background-color: #777;
+            cursor: not-allowed;
+        }
+
+        #pause-btn {
+            position: absolute;
+            top: 20px;
+            right: 320px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        #shop-btn {
+            position: absolute;
+            top: 20px;
+            right: 380px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .instructions {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            max-width: 600px;
+        }
+
+        .key {
+            display: inline-block;
+            background-color: #555;
+            padding: 5px 10px;
+            border-radius: 3px;
+            margin: 0 5px;
+            font-family: monospace;
+        }
+
+        .level-indicator {
+            position: absolute;
+            top: 60px;
+            left: 20px;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 5px;
+        }
+
+        #stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
     </style>
 </head>
 <body>
+    <!-- Schermata di gioco principale -->
     <div id="game-container">
+        <canvas id="stars"></canvas>
         <div id="spaceship"></div>
         <div id="platform"></div>
-        <div id="message">
-            <h2>Vittoria!</h2>
-            <p>Hai atterrato l'astronave sulla piattaforma!</p>
-            <button id="restart-btn">Gioca ancora</button>
-        </div>
-        <div id="instructions">
-            Usa le frecce ← → o i tasti A e D per muovere l'astronave
+
+        <div id="velocity-indicator" class="game-stat">Velocità: 0.00</div>
+        <div id="fuel-indicator" class="game-stat">Carburante: 100%</div>
+        <div id="coins-indicator" class="game-stat">Monete: 0</div>
+        <div id="level-indicator" class="level-indicator">Livello: 1</div>
+
+        <button id="pause-btn">⏸️ Pausa</button>
+        <button id="shop-btn">🛒 Negozio</button>
+    </div>
+
+    <!-- Schermata principale del menu -->
+    <div id="main-menu" class="screen">
+        <h1>Space Landing 🚀</h1>
+        <p>Atterra l'astronave sulla piattaforma verde e diventa il miglior pilota spaziale!</p>
+        
+        <div id="menu-buttons">
+            <button id="play-btn" class="button">Gioca</button>
+            <button id="instructions-btn" class="button">Come si gioca</button>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- Schermata delle istruzioni -->
+    <div id="instructions-screen" class="screen" style="display:none;">
+        <h1>Come si gioca</h1>
+        
+        <div class="instructions">
+            <h2>Comandi</h2>
+            <p><span class="key">W</span> o <span class="key">↑</span> - Attiva i propulsori (consuma carburante)</p>
+            <p><span class="key">A</span> o <span class="key">←</span> - Muovi a sinistra</p>
+            <p><span class="key">D</span> o <span class="key">→</span> - Muovi a destra</p>
+            <p><span class="key">P</span> - Pausa</p>
+            <p><span class="key">S</span> - Apri il negozio</p>
+        </div>
 
+        <div class="instructions">
+            <h2>Obiettivo</h2>
+            <p>Atterra l'astronave sulla piattaforma verde senza schiantarti!</p>
+            <p>Per un atterraggio sicuro, la tua velocità deve essere inferiore a 1.0</p>
+            <p>Guadagnerai monete per ogni atterraggio riuscito, che potrai spendere nel negozio.</p>
+        </div>
+
+        <div class="instructions">
+            <h2>Consigli</h2>
+            <p>Gestisci con cura il carburante! Se finisce, non potrai più rallentare la discesa.</p>
+            <p>La gravitazione è sempre in agguato! Se non usi i propulsori, l'astronave accelererà verso il basso.</p>
+            <p>Man mano che avanzi nei livelli, la piattaforma diventerà più piccola e la gravità aumenterà!</p>
+        </div>
+        
+        <button id="back-to-menu-btn" class="button">Torna al menu</button>
+    </div>
+
+    <!-- Messaggio in-game (vittoria, sconfitta) -->
+    <div id="game-message">
+        <h2 id="message-title">Vittoria!</h2>
+        <p id="message-text">Hai atterrato l'astronave sulla piattaforma!</p>
+        <div id="message-buttons">
+            <button id="continue-btn" class="button">Continua</button>
+            <button id="back-to-menu-from-message-btn" class="button">Menu principale</button>
+        </div>
+    </div>
+
+    <!-- Schermata di pausa -->
+    <div id="pause-screen" class="screen" style="display:none;">
+        <h1>Gioco in pausa</h1>
+        <button id="resume-btn" class="button">Riprendi</button>
+        <button id="back-to-menu-from-pause-btn" class="button">Menu principale</button>
+    </div>
+
+    <!-- Negozio -->
+    <div id="shop-container">
+        <h2>Negozio</h2>
+        <div class="shop-item">
+            <span>Carburante +20%</span>
+            <button id="buy-fuel-btn" data-price="10" data-amount="20">10 monete</button>
+        </div>
+        <div class="shop-item">
+            <span>Carburante +50%</span>
+            <button id="buy-fuel-large-btn" data-price="20" data-amount="50">20 monete</button>
+        </div>
+        <div class="shop-item">
+            <span>Motori potenziati</span>
+            <button id="buy-engine-btn" data-price="30">30 monete</button>
+        </div>
+        <div class="shop-item">
+            <span>Serbatoio più grande</span>
+            <button id="buy-tank-btn" data-price="50">50 monete</button>
+        </div>
+        <button id="close-shop-btn" class="button">Chiudi</button>
+    </div>
+
+    <script>
+        // Elementi del DOM
+        const spaceship = document.getElementById('spaceship');
+        const platform = document.getElementById('platform');
+        const gameMessage = document.getElementById('game-message');
+        const velocityIndicator = document.getElementById('velocity-indicator');
+        const fuelIndicator = document.getElementById('fuel-indicator');
+        const coinsIndicator = document.getElementById('coins-indicator');
+        const levelIndicator = document.getElementById('level-indicator');
+        const gameContainer = document.getElementById('game-container');
+        const mainMenu = document.getElementById('main-menu');
+        const instructionsScreen = document.getElementById('instructions-screen');
+        const pauseScreen = document.getElementById('pause-screen');
+        const shopContainer = document.getElementById('shop-container');
+        const messageTitle = document.getElementById('message-title');
+        const messageText = document.getElementById('message-text');
+        const starsCanvas = document.getElementById('stars');
+        const starsCtx = starsCanvas.getContext('2d');
+
+        // Bottoni
+        const playBtn = document.getElementById('play-btn');
+        const instructionsBtn = document.getElementById('instructions-btn');
+        const backToMenuBtn = document.getElementById('back-to-menu-btn');
+        const continueBtn = document.getElementById('continue-btn');
+        const backToMenuFromMessageBtn = document.getElementById('back-to-menu-from-message-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const resumeBtn = document.getElementById('resume-btn');
+        const backToMenuFromPauseBtn = document.getElementById('back-to-menu-from-pause-btn');
+        const shopBtn = document.getElementById('shop-btn');
+        const closeShopBtn = document.getElementById('close-shop-btn');
+        const buyFuelBtn = document.getElementById('buy-fuel-btn');
+        const buyFuelLargeBtn = document.getElementById('buy-fuel-large-btn');
+        const buyEngineBtn = document.getElementById('buy-engine-btn');
+        const buyTankBtn = document.getElementById('buy-tank-btn');
+
+        // Variabili di gioco
+        let spaceshipX, spaceshipY, velocity, acceleration;
+        let fuel = 100;
+        let maxFuel = 100;
+        let horizontalSpeed = 8;
+        let isGameOver = false;
+        let isPaused = false;
+        let isShopOpen = false;
+        let enginePower = 1;
+        let coins = 0;
+        let level = 1;
+        let keys = {};
+        let stars = [];
+        let animationFrameId;
+        let lastTime = 0;
+
+        // Inizializzazione delle stelle per lo sfondo
+        function initStars() {
+            starsCanvas.width = window.innerWidth;
+            starsCanvas.height = window.innerHeight;
+            stars = [];
+            
+            for (let i = 0; i < 200; i++) {
+                stars.push({
+                    x: Math.random() * starsCanvas.width,
+                    y: Math.random() * starsCanvas.height,
+                    radius: Math.random() * 1.5 + 0.5,
+                    opacity: Math.random() * 0.8 + 0.2
+                });
+            }
+            
+            drawStars();
+        }
+
+        function drawStars() {
+            starsCtx.clearRect(0, 0, starsCanvas.width, starsCanvas.height);
+            
+            stars.forEach(star => {
+                starsCtx.beginPath();
+                starsCtx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                starsCtx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
+                starsCtx.fill();
+            });
+        }
+
+        // Controllo input da tastiera
+        window.addEventListener('keydown', function(e) {
+            keys[e.key.toLowerCase()] = true;
+            
+            // Scorciatoie da tastiera
+            if (e.key.toLowerCase() === 'p' && !isGameOver && !isShopOpen) {
+                togglePause();
+            }
+            
+            if (e.key.toLowerCase() === 's' && !isGameOver && !isPaused) {
+                toggleShop();
+            }
+        });
+
+        window.addEventListener('keyup', function(e) {
+            keys[e.key.toLowerCase()] = false;
+        });
+
+        // Ridimensionamento della finestra
+        window.addEventListener('resize', function() {
+            initStars();
+            
+            // Aggiusta la posizione della piattaforma
+            platform.style.left = (window.innerWidth / 2 - platform.offsetWidth / 2) + 'px';
+            
+            // Assicura che l'astronave rimanga nei limiti
+            if (spaceshipX > window.innerWidth - spaceship.offsetWidth) {
+                spaceshipX = window.innerWidth - spaceship.offsetWidth;
+            }
+        });
+
+        // Funzioni di navigazione UI
+        function showMainMenu() {
+            cancelAnimationFrame(animationFrameId);
+            mainMenu.style.display = 'flex';
+            instructionsScreen.style.display = 'none';
+            pauseScreen.style.display = 'none';
+            gameContainer.style.display = 'none';
+            gameMessage.style.display = 'none';
+            shopContainer.style.display = 'none';
+            isPaused = false;
+            isShopOpen = false;
+        }
+
+        function showInstructions() {
+            mainMenu.style.display = 'none';
+            instructionsScreen.style.display = 'flex';
+        }
+
+        function startGame() {
+            mainMenu.style.display = 'none';
+            gameContainer.style.display = 'block';
+            resetGame();
+            gameLoop(0);
+        }
+
+        function togglePause() {
+            isPaused = !isPaused;
+            if (isPaused) {
+                pauseScreen.style.display = 'flex';
+                cancelAnimationFrame(animationFrameId);
+            } else {
+                pauseScreen.style.display = 'none';
+                lastTime = performance.now();
+                gameLoop(lastTime);
+            }
+        }
+
+        function toggleShop() {
+            isShopOpen = !isShopOpen;
+            shopContainer.style.display = isShopOpen ? 'block' : 'none';
+            
+            // Aggiorna lo stato dei pulsanti del negozio
+            updateShopButtons();
+            
+            if (isShopOpen) {
+                isPaused = true;
+                cancelAnimationFrame(animationFrameId);
+            } else if (!isPaused) {
+                lastTime = performance.now();
+                gameLoop(lastTime);
+            }
+        }
+
+        function updateShopButtons() {
+            // Disabilita i pulsanti se non ci sono abbastanza monete
+            buyFuelBtn.disabled = coins < parseInt(buyFuelBtn.dataset.price);
+            buyFuelLargeBtn.disabled = coins < parseInt(buyFuelLargeBtn.dataset.price);
+            buyEngineBtn.disabled = coins < parseInt(buyEngineBtn.dataset.price);
+            buyTankBtn.disabled = coins < parseInt(buyTankBtn.dataset.price);
+        }
+
+        // Funzione principale del ciclo di gioco
+        function gameLoop(timestamp) {
+            if (isGameOver || isPaused) return;
+            
+            const deltaTime = (timestamp - lastTime) / 16.67; // Normalizza a circa 60fps
+            lastTime = timestamp;
+            
+            // Calcola l'accelerazione in base al livello
+            const gravityMultiplier = 1 + (level - 1) * 0.1;
+            
+            // Applica gravità o propulsione
+            if ((keys['arrowup'] || keys['w']) && fuel > 0) {
+                velocity -= acceleration * 2 * enginePower * deltaTime;
+                if (velocity < -2 * enginePower) velocity = -2 * enginePower;
+                fuel = Math.max(0, fuel - 0.5 * deltaTime);
+                spaceship.classList.add('thrusting');
+            } else {
+                velocity += acceleration * gravityMultiplier * deltaTime;
+                spaceship.classList.remove('thrusting');
+            }
+            
+            // Aggiorna posizione verticale
+            spaceshipY += velocity * deltaTime;
+            
+            // Limita la posizione superiore
+            if (spaceshipY < 0) {
+                spaceshipY = 0;
+                velocity = 0;
+            }
+            
+            // Movimento orizzontale
+            if ((keys['arrowleft'] || keys['a']) && spaceshipX > 0) {
+                spaceshipX -= horizontalSpeed * deltaTime;
+                spaceship.style.transform = 'rotate(-15deg)';
+            } else if ((keys['arrowright'] || keys['d']) && spaceshipX < window.innerWidth - spaceship.offsetWidth) {
+                spaceshipX += horizontalSpeed * deltaTime;
+                spaceship.style.transform = 'rotate(15deg)';
+            } else {
+                spaceship.style.transform = 'rotate(0deg)';
+            }
+            
+            // Applica la posizione all'astronave
+            spaceship.style.left = spaceshipX + 'px';
+            spaceship.style.top = spaceshipY + 'px';
+            
+            // Controlla collisione con la piattaforma
+            const platformRect = platform.getBoundingClientRect();
+            const spaceshipRect = spaceship.getBoundingClientRect();
+            
+            const isCollision = !(
+                spaceshipRect.bottom < platformRect.top ||
+                spaceshipRect.top > platformRect.bottom ||
+                spaceshipRect.right < platformRect.left ||
+                spaceshipRect.left > platformRect.right
+            );
+            
+            // Atterraggio riuscito
+            if (isCollision && velocity >= 0 && velocity < 1) {
+                isGameOver = true;
+                const reward = Math.floor(10 + level * 5 + fuel * 0.2);
+                coins += reward;
+                messageTitle.textContent = 'Livello completato!';
+                messageText.textContent = `Hai atterrato con successo! Velocità: ${velocity.toFixed(2)}\nHai guadagnato ${reward} monete.`;
+                gameMessage.style.display = 'block';
+                level++;
+                
+                // Aggiorna gli indicatori
+                coinsIndicator.textContent = `Monete: ${coins}`;
+                levelIndicator.textContent = `Livello: ${level}`;
+                
+                return;
+            }
+            
+            // Schianto sulla piattaforma
+            if (isCollision && velocity >= 1) {
+                isGameOver = true;
+                messageTitle.textContent = 'Schianto!';
+                messageText.textContent = `Velocità troppo alta: ${velocity.toFixed(2)}. L'astronave è danneggiata.`;
+                gameMessage.style.display = 'block';
+                return;
+            }
+            
+            // Schianto sul terreno
+            if (spaceshipY + spaceship.offsetHeight >= window.innerHeight) {
+                isGameOver = true;
+                messageTitle.textContent = 'Fallimento!';
+                messageText.textContent = 'L\'astronave si è schiantata sul terreno.';
+                gameMessage.style.display = 'block';
+                return;
+            }
+            
+            // Aggiorna gli indicatori
+            velocityIndicator.textContent = `Velocità: ${velocity.toFixed(2)}`;
+            fuelIndicator.textContent = `Carburante: ${Math.floor(fuel)}%`;
+            
+            // Continua il ciclo di gioco
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        // Resetta il gioco per un nuovo livello
+        function resetGame() {
+            // Calcola la larghezza della piattaforma in base al livello
+            const platformWidth = Math.max(60, 120 - (level - 1) * 5);
+            platform.style.width = platformWidth + 'px';
+            platform.style.left = (window.innerWidth / 2 - platformWidth / 2) + 'px';
+            
+            // Resetta variabili di gioco
+            velocity = 0.1;
+            acceleration = 0.06;
+            fuel = Math.min(maxFuel, fuel + 20); // Ricarica parziale del carburante tra i livelli
+            isGameOver = false;
+            isPaused = false;
+            gameMessage.style.display = 'none';
+            keys = {};
+            
+            // Posiziona l'astronave
+            spaceshipX = Math.random() * (window.innerWidth - spaceship.offsetWidth);
+            spaceshipY = 50;
+            spaceship.style.left = spaceshipX + 'px';
+            spaceship.style.top = spaceshipY + 'px';
+            spaceship.style.transform = 'rotate(0deg)';
+            
+            // Aggiorna gli indicatori
+            velocityIndicator.textContent = `Velocità: ${velocity.toFixed(2)}`;
+            fuelIndicator.textContent = `Carburante: ${Math.floor(fuel)}%`;
+            coinsIndicator.textContent = `Monete: ${coins}`;
+            levelIndicator.textContent = `Livello: ${level}`;
+            
+            // Imposta l'ultimo timestamp
+            lastTime = performance.now();
+        }
+
+        // Funzioni del negozio
+        function buyFuel(amount, price) {
+            if (coins >= price && fuel < maxFuel) {
+                coins -= price;
+                fuel = Math.min(maxFuel, fuel + amount);
+                coinsIndicator.textContent = `Monete: ${coins}`;
+                fuelIndicator.textContent = `Carburante: ${Math.floor(fuel)}%`;
+                updateShopButtons();
+            }
+        }
+
+        function upgradeFuelTank(price) {
+            if (coins >= price) {
+                coins -= price;
+                maxFuel += 25;
+                coinsIndicator.textContent = `Monete: ${coins}`;
+                fuelIndicator.textContent = `Carburante: ${Math.floor(fuel)}%`;
+                updateShopButtons();
+            }
+        }
+
+        function upgradeEngine(price) {
+            if (coins >= price) {
+                coins -= price;
+                enginePower += 0.2;
+                coinsIndicator.textContent = `Monete: ${coins}`;
+                updateShopButtons();
+            }
+        }
+
+        // Event Listeners per i bottoni
+        playBtn.addEventListener('click', startGame);
+        instructionsBtn.addEventListener('click', showInstructions);
+        backToMenuBtn.addEventListener('click', showMainMenu);
+        continueBtn.addEventListener('click', function() {
+            gameMessage.style.display = 'none';
+            isGameOver = false;
+            resetGame();
+            gameLoop(performance.now());
+        });
+        backToMenuFromMessageBtn.addEventListener('click', showMainMenu);
+        pauseBtn.addEventListener('click', togglePause);
+        resumeBtn.addEventListener('click', togglePause);
+        backToMenuFromPauseBtn.addEventListener('click', showMainMenu);
+        shopBtn.addEventListener('click', toggleShop);
+        closeShopBtn.addEventListener('click', toggleShop);
+        
+        // Event Listeners per gli acquisti nel negozio
+        buyFuelBtn.addEventListener('click', function() {
+            const amount = parseInt(this.dataset.amount);
+            const price = parseInt(this.dataset.price);
+            buyFuel(amount, price);
+        });
+        
+        buyFuelLargeBtn.addEventListener('click', function() {
+            const amount = parseInt(this.dataset.amount);
+            const price = parseInt(this.dataset.price);
+            buyFuel(amount, price);
+        });
+        
+        buyEngineBtn.addEventListener('click', function() {
+            const price = parseInt(this.dataset.price);
+            upgradeEngine(price);
+        });
+        
+        buyTankBtn.addEventListener('click', function() {
+            const price = parseInt(this.dataset.price);
+            upgradeFuelTank(price);
+        });
+
+        // Avvia il gioco
+        initStars();
+        showMainMenu();
+    </script>
 </body>
 </html>
