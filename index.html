@@ -30,8 +30,8 @@
 
         #contenitore-gioco {
             position: relative;
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
             display: none;
         }
 
@@ -93,8 +93,8 @@
 
         .schermo {
             position: absolute;
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
             background-color: rgba(0, 0, 0, 0.9);
             display: flex;
             flex-direction: column;
@@ -369,7 +369,6 @@
     </style>
 </head>
 <body>
-    <!-- Codice del gioco -->
     <div id="contenitore-gioco">
         <canvas id="stelle"></canvas>
         <div id="astronave"></div>
@@ -383,7 +382,6 @@
         <button id="pulsante-negozio">🛒 Negozio</button>
     </div>
 
-    <!-- Schermata principale del menu -->
     <div id="menu-principale" class="schermo">
         <h1>Atterra Navicella</h1>
         <div class="logo-contenitore">
